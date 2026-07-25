@@ -191,7 +191,8 @@ function App() {
               ? `${config.oidc.authority}/protocol/openid-connect/auth`
               : `${config.oidc.authority}/oauth/v2/authorize`;
             const redirectUri = window.location.origin + config.oidc.redirectPath;
-            window.location.href = `${authorizeUrl}?response_type=token&client_id=${config.oidc.clientId}&scope=${encodeURIComponent(config.oidc.scope)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+            const nonce = Math.random().toString(36).substring(2);
+            window.location.href = `${authorizeUrl}?response_type=id_token%20token&client_id=${config.oidc.clientId}&scope=${encodeURIComponent(config.oidc.scope)}&redirect_uri=${encodeURIComponent(redirectUri)}&nonce=${nonce}`;
           }}><Login /></IconButton>} />
           <Route path={config.oidc.redirectPath} element={<Token setToken={setToken} />} />
           <Route path="/profile" element={
