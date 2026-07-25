@@ -9,7 +9,7 @@ Die App wird unter `mysocialapp.de` gehostet.
 | Frontend | `https://mysocialapp.de` |
 | Backend API | `https://api.mysocialapp.de` |
 | Bilder/Assets (R2) | `https://assets.mysocialapp.de` |
-| Zitadel (Auth) | `https://auth.mysocialapp.de` (CNAME auf Zitadel Cloud) |
+| Zitadel (Auth) | `https://mysocialapp-qdgnxb.eu1.zitadel.cloud` |
 
 ---
 
@@ -31,10 +31,9 @@ Cloudflare Pages und R2 Custom Domains funktionieren am besten wenn Cloudflare d
 
 | Typ | Name | Ziel | Proxy |
 |---|---|---|---|
-| CNAME | `@` | `social.pages.dev` | Proxied (orange) |
+| CNAME | `@` | Cloudflare Pages (`mysocialapp.pages.dev`) | Proxied (orange) |
 | CNAME | `api` | `<service>.up.railway.app` | DNS only (grey) |
 | CNAME | `assets` | R2 Custom Domain (von Cloudflare zugewiesen) | Proxied (orange) |
-| CNAME | `auth` | `<instanz>.zitadel.cloud` | DNS only (grey) |
 
 > **Hinweis:** `api` und `auth` sollten "DNS only" (nicht proxied) sein, damit Railway und Zitadel ihre eigenen TLS-Zertifikate ausstellen können.
 
@@ -46,10 +45,9 @@ Falls ihr die Nameserver nicht umstellen wollt, könnt ihr die DNS-Records direk
 
 | Typ | Name | Ziel | TTL |
 |---|---|---|---|
-| CNAME | `www` | `social.pages.dev` | 1h |
+| CNAME | `www` | `mysocialapp.pages.dev` | 1h |
 | CNAME | `api` | `<service>.up.railway.app` | 1h |
 | CNAME | `assets` | R2 Custom Domain | 1h |
-| CNAME | `auth` | `<instanz>.zitadel.cloud` | 1h |
 | A | `@` | Cloudflare Pages IP (via Verifizierung) | 1h |
 
 > **Nachteil:** Kein Cloudflare-Proxy (kein CDN-Caching, kein DDoS-Schutz für Frontend). Außerdem erfordert die R2 Custom Domain zwingend Cloudflare-DNS.
@@ -299,8 +297,8 @@ Die Controller (BeitraegeController, AccountController) nutzen jetzt `@Autowired
 |---|---|
 | `SPRING_PROFILES_ACTIVE` | `prod` |
 | `MONGODB_URI` | MongoDB Atlas Connection String |
-| `OIDC_ISSUER_URI` | `https://auth.mysocialapp.de` |
-| `OIDC_JWKS_URI` | `https://auth.mysocialapp.de/oauth/v2/keys` |
+| `OIDC_ISSUER_URI` | `https://mysocialapp-qdgnxb.eu1.zitadel.cloud` |
+| `OIDC_JWKS_URI` | `https://mysocialapp-qdgnxb.eu1.zitadel.cloud/oauth/v2/keys` |
 | `S3_ENDPOINT` | `https://<account-id>.r2.cloudflarestorage.com` |
 | `S3_ACCESS_KEY` | Cloudflare R2 Access Key |
 | `S3_SECRET_KEY` | Cloudflare R2 Secret Key |
@@ -663,7 +661,7 @@ Im GitHub Repository unter Settings → Secrets and Variables → Actions:
 | Name | Beispielwert |
 |---|---|
 | `REACT_APP_API_URL` | `https://api.mysocialapp.de` |
-| `REACT_APP_OIDC_AUTHORITY` | `https://auth.mysocialapp.de` |
+| `REACT_APP_OIDC_AUTHORITY` | `https://mysocialapp-qdgnxb.eu1.zitadel.cloud` |
 | `REACT_APP_OIDC_CLIENT_ID` | `123456789@social` |
 | `REACT_APP_ASSETS_URL` | `https://assets.mysocialapp.de` |
 | `RAILWAY_SERVICE_ID` | Railway Service ID (Settings → General) |
