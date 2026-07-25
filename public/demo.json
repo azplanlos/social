@@ -1,0 +1,45 @@
+[
+    {
+        "id": 1,
+        "link": "LU.jpg",
+        "typ": "FOTO",
+        "titel": "Testtitel",
+        "datum": "2026-05-04T20:03:54+1",
+        "beschreibung": "Ein tolles Foto",
+        "autor": {
+            "name": "Lukas",
+            "avatar_url": "lu.jpg"
+        },
+        "gefaellt_num": 2,
+        "gefaellt_nicht_num": 0,
+        "angesehen_num": 10
+    },
+    {
+        "id": 2,
+        "link": "https://1drv.ms/i/c/bb6f824461cf4332/IQQyQ89hRIJvIIC7bwAAAAAAAbfGKvilTmUYFmrm6FyZG1Q?width=4032&height=3024",
+        "typ": "FOTO",
+        "titel": "Testtitel",
+        "datum": "2026-05-04T20:03:54+1",
+        "beschreibung": "Ein tolles Foto",
+        "autor": {
+            "name": "Lukas",
+            "avatar_url": "lu.jpg"
+        },
+        "gefaellt_num": 2,
+        "gefaellt_nicht_num": 0
+    },
+    {
+        "id": 3,
+        "link": "https://1drv.ms/i/c/bb6f824461cf4332/IQRJcsm6uu2GQ55SMk4DBmyPAVhNInSJNTNTutzzfO-JN60?width=1536&height=2048",
+        "typ": "FOTO",
+        "titel": "Testtitel",
+        "datum": "2026-05-04T20:03:54+1",
+        "beschreibung": "Last ein like da",
+        "autor": {
+            "name": "Asli",
+            "avatar_url": "lu.jpg"
+        },
+        "gefaellt_num": 0,
+        "gefaellt_nicht_num": 0
+    }
+]

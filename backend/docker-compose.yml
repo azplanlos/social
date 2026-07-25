@@ -1,0 +1,65 @@
+services:
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - 27018:27017
+    volumes:
+      - mongo_data:/data/db
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+      ME_CONFIG_BASICAUTH_ENABLED: true
+      ME_CONFIG_BASICAUTH_USERNAME: mongoexpressuser
+      ME_CONFIG_BASICAUTH_PASSWORD: mongoexpresspass
+  
+  minio:
+    image: elestio/minio
+    restart: always
+    ports:
+        - "9000:9000"
+        - "9001:9001"
+    environment:
+        MINIO_ROOT_USER: lukas
+        MINIO_ROOT_PASSWORD: example1
+    command: server --address ":9000" --console-address ":9001" /data
+    volumes:
+      - minio_data:/data
+
+  minio-init:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      mc alias set local http://minio:9000 lukas example1;
+      mc mb --ignore-existing local/social;
+      mc anonymous set download local/social;
+      exit 0;
+      "
+    restart: "no"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.6.2
+    restart: always
+    command: start-dev --hostname-strict false --proxy-headers xforwarded --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: example1
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    ports:
+      - 8082:8080
+
+volumes:
+  mongo_data:
+  minio_data:

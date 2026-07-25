@@ -1,0 +1,240 @@
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import './App.css';
+import axios from 'axios';
+import useAxios from 'axios-hooks';
+import BeitragCard from './BeitragCard';
+import { Beitrag } from './datenformat/Beitrag';
+import { CircularProgress, Container, CssBaseline, IconButton } from '@mui/material';
+import Navbar from './Navbar';
+import DrawerMenu from './DrawerMenu';
+import NeuerBeitragButton from './NeuerBeitragButton';
+import FotoUpload from './FotoUpload';
+import { Person } from './datenformat/Person';
+import Compress from 'compress.js';
+import { useSessionStorage } from '@uidotdev/usehooks';
+import ImageViewer from 'simple-image-viewer-react19';
+import { BrowserRouter, Route, Routes, useNavigate } from 'react-router';
+import { Login } from '@mui/icons-material';
+import Token from './Token';
+import MyProfile from './MyProfile';
+import ContactListPage from './ContactListPage';
+import { config } from './config';
+
+// Set axios base URL from config (empty string for local dev = relative URLs via proxy)
+axios.defaults.baseURL = config.apiUrl;
+
+interface PageResponse {
+  content: Beitrag[];
+  last: boolean;
+  number: number;
+  totalPages: number;
+  totalElements: number;
+}
+
+
+function App() {
+
+  const [token, setToken] = useSessionStorage<string | null>("token", null);
+
+  const [{data: user, loading: loadingUser, error: userError}, refetchUser] = useAxios<Person>({
+    url: '/account',
+    headers: { "X-Requested-With": 'XMLHttpRequest',
+      Authorization: 'Bearer ' + token
+    },
+    withCredentials: true
+  });
+  const [open, setOpen] = React.useState(false);
+  const [bild, setBild] = React.useState<Blob>();
+
+  // Infinite scrolling state
+  const [beitraege, setBeitraege] = useState<Beitrag[]>([]);
+  const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const loaderRef = useRef<HTMLDivElement | null>(null);
+
+  const fetchPage = useCallback((pageNum: number, reset: boolean = false) => {
+    if (loading) return;
+    setLoading(true);
+    axios.get<PageResponse>('/beitraege', {
+      params: { page: pageNum, size: 10 },
+      headers: { "X-Requested-With": 'XMLHttpRequest', Authorization: 'Bearer ' + token },
+      withCredentials: true
+    }).then(response => {
+      const data = response.data;
+      setBeitraege(prev => reset ? data.content : [...prev, ...data.content]);
+      setHasMore(!data.last);
+      setPage(data.number);
+      setLoading(false);
+    }).catch(() => {
+      setLoading(false);
+    });
+  }, [token, loading]);
+
+  // Initial load
+  useEffect(() => {
+    if (token) {
+      fetchPage(0, true);
+    }
+  }, [token]);
+
+  // IntersectionObserver for infinite scroll
+  useEffect(() => {
+    if (!loaderRef.current) return;
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore && !loading) {
+          fetchPage(page + 1);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(loaderRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, loading, page, fetchPage]);
+
+  const refetch = useCallback(() => {
+    setBeitraege([]);
+    setPage(0);
+    setHasMore(true);
+    fetchPage(0, true);
+  }, [fetchPage]);
+
+  const [bearbeiten, setBearbeiten] = React.useState(false);
+  const [upload, setUpload] = React.useState(false);
+  const [titel, setTitel] = React.useState("");
+  const [beschreibung, setBeschreibung] = React.useState("");
+  const [disabled, setDisabled] = React.useState(false);
+  const [empfaenger, setEmpfaenger] = React.useState<Person[]>([]);
+  const [visibleState, setVisibleState] = React.useState<string[]>([]);
+  const refs = useRef<Element[]>([]);
+  const [currentImage, setCurrentImage] = useState(0);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+
+  let cards;
+  useEffect(() => {
+    console.log("data " + beitraege?.length);
+    refs.current = refs.current.slice(0, beitraege?.length || 0);
+  }, [beitraege]);
+  if (!loading || beitraege.length > 0) {
+    cards = beitraege.map((beitrag, i) => <div key={beitrag.id} ref={el => { if (el) refs.current[i] = el}}>
+      <BeitragCard beitrag={beitrag} bearbeiten={false} user={user} refetch={refetch} onClick={() => openImageViewer(i)} token={token} />
+      </div>
+      );
+  }
+
+  const openImageViewer = useCallback((index: number) => {
+    setCurrentImage(index);
+    setIsViewerOpen(true);
+  }, []);
+
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.filter(e => e.isIntersecting).forEach(e => {
+            const index = refs.current.indexOf(e.target);
+            const beitrag = beitraege[index];
+            if (!beitrag) return;
+            console.log('sichtbar', index, e);
+            if (!visibleState.includes(beitrag.id)) {
+              console.log("update", index);
+              visibleState.push(beitrag.id);
+              axios.post("/beitrag/" + beitrag.id + "/gelesen", null, {
+                headers: { "X-Requested-With": 'XMLHttpRequest',
+                Authorization: 'Bearer ' + token
+               },
+                withCredentials: true
+              }).then(resp => {
+                console.log("Gelesen-Response:", resp.status);
+                if (resp.status === 401) {
+                  window.location.href = "/";
+                }
+              }, error => {
+                console.log("Gelesen-Error:", error);
+              });
+            }
+          });
+        },
+      { threshold: 0.25, rootMargin: "50px" }
+    );
+    refs.current.forEach(el => observer.observe(el));
+    return () => observer.disconnect();
+  }, [beitraege, user]);
+
+  function loadBild(file: File) {
+    const compressor = new Compress();
+
+    compressor.compress([file], {
+      quality: 0.8,
+      maxWidth: 500,
+      maxHeight: 500,
+    }).then(file => {
+      setBild(Compress.convertBase64ToFile(file[0].data, file[0].ext));
+    });
+  }
+
+  function finishBearbeiten(b: boolean): void {
+    if (bearbeiten === true && b === false) {
+      refetch();
+      setEmpfaenger([]);
+    }
+    setBearbeiten(b);
+  }
+
+  
+
+  return (
+    <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<IconButton onClick={() => {
+            const authorizeUrl = config.oidc.authority.includes('/realms/')
+              ? `${config.oidc.authority}/protocol/openid-connect/auth`
+              : `${config.oidc.authority}/oauth/v2/authorize`;
+            const redirectUri = window.location.origin + config.oidc.redirectPath;
+            window.location.href = `${authorizeUrl}?response_type=token&client_id=${config.oidc.clientId}&scope=${encodeURIComponent(config.oidc.scope)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+          }}><Login /></IconButton>} />
+          <Route path={config.oidc.redirectPath} element={<Token setToken={setToken} />} />
+          <Route path="/profile" element={
+            user ? <MyProfile user={user} token={token} onAvatarUpdated={refetchUser} /> : <></>
+          } />
+          <Route path="/contactlists" element={
+            <ContactListPage token={token} />
+          } />
+          <Route path="/secure" element={
+            <>
+              { isViewerOpen &&
+                <ImageViewer
+                  src={ beitraege.map(beitrag => config.assetsUrl + '/' + beitrag.link) }
+                  alt={ beitraege.map(b => b.titel) }
+                  disableScroll={ true }
+                  closeOnClickOutside={ true }
+                  closeOnClickInside={ true }
+                  currentIndex={currentImage}
+                  onClose={() => setIsViewerOpen(false)}
+                />
+              }
+              {!isViewerOpen && user && <>
+              <CssBaseline />
+              <Navbar drawerOpen={setOpen} account={user} />
+              <DrawerMenu open={open} setOpen={setOpen} account={user} />
+              <NeuerBeitragButton fotoUpload={() => setUpload(true)} />
+              <FotoUpload waehlen={upload} onSelected={(file: File) => {setBearbeiten(true); setUpload(false); loadBild(file)}} />
+              <Container maxWidth="sm" sx={{marginTop: "64px"}}>
+                {bearbeiten && <BeitragCard bearbeiten user={user} bild={bild} titel={titel} beschreibung={beschreibung} setTitel={setTitel}
+                setBeschreibung={setBeschreibung} setBearbeiten={finishBearbeiten} disabled={disabled} setDisabled={setDisabled} empfaenger={empfaenger} setEmpfaenger={setEmpfaenger} refetch={refetch} token={token}></BeitragCard>}
+                {cards}
+                {hasMore && <div ref={loaderRef} style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
+                  <CircularProgress />
+                </div>}
+              </Container>
+              </>
+              }
+              </>
+          } />
+        </Routes>
+      </BrowserRouter>
+    
+  );
+}
+
+export default App;
