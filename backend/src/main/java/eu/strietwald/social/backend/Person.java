@@ -25,5 +25,9 @@ public class Person {
     private String name;
 
     @Field
+    @Indexed(unique = true, sparse = true)
+    private String sub;
+
+    @Field
     private String avatar_url;
 }
