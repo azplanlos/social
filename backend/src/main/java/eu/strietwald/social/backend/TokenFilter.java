@@ -62,6 +62,20 @@ public class TokenFilter extends OncePerRequestFilter {
 
         Person user = personRepository.findBySub(sub);
         if (user == null) {
+            // Fallback: find user that was previously created with sub as name (migration)
+            user = personRepository.findByNameAndSubIsNull(sub);
+            if (user != null) {
+                logger.info("Migrating user with name={} to sub={}", user.getName(), sub);
+                // Fetch real display name and update
+                String realName = fetchDisplayNameFromUserinfo(authentication.getToken().getTokenValue());
+                if (realName != null) {
+                    user.setName(realName);
+                }
+                user.setSub(sub);
+                personRepository.save(user);
+            }
+        }
+        if (user == null) {
             // New user – fetch display name from userinfo if not in token
             if (displayName == null && !issuerUri.isEmpty()) {
                 displayName = fetchDisplayNameFromUserinfo(authentication.getToken().getTokenValue());
