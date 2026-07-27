@@ -43,6 +43,9 @@ public class BeitraegeController {
     @Autowired
     private String s3Bucket;
 
+    @Autowired
+    private PushNotificationService pushNotificationService;
+
     Logger logger = LoggerFactory.getLogger(BeitraegeController.class);
 
     public BeitraegeController(BeitragRepository repository) {
@@ -89,6 +92,26 @@ public class BeitraegeController {
         beitrag.setAngesehen_num(0);
         beitrag.setAutor(userInfo.getPerson());
         this.repository.save(beitrag);
+
+        // Send push notifications
+        String bildUrl = beitrag.getLink();
+        String titel = beitrag.getTitel();
+        List<Person> recipients;
+
+        if (beitrag.getEmpfaenger() != null && !beitrag.getEmpfaenger().isEmpty()) {
+            // Targeted post: notify only specific recipients
+            recipients = beitrag.getEmpfaenger().stream()
+                    .map(p -> personRepository.findByName(p.getName()))
+                    .filter(p -> p != null)
+                    .toList();
+        } else {
+            // Public post: notify all users except the author
+            recipients = personRepository.findAll().stream()
+                    .filter(p -> !p.getName().equals(userInfo.getPerson().getName()))
+                    .toList();
+        }
+
+        pushNotificationService.sendToPersons(recipients, titel, bildUrl);
     }
 
     @PostMapping("/foto")

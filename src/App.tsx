@@ -20,6 +20,7 @@ import MyProfile from './MyProfile';
 import ContactListPage from './ContactListPage';
 import PullToRefresh from './PullToRefresh';
 import { config } from './config';
+import { usePushNotifications } from './usePushNotifications';
 
 // Set axios base URL from config (empty string for local dev = relative URLs via proxy)
 axios.defaults.baseURL = config.apiUrl;
@@ -48,6 +49,9 @@ interface PageResponse {
 function App() {
 
   const [token, setToken] = useSessionStorage<string | null>("token", null);
+
+  // Register push notifications when user is authenticated
+  usePushNotifications(token);
 
   const [{data: user, loading: loadingUser, error: userError}, refetchUser] = useAxios<Person>({
     url: '/account',
