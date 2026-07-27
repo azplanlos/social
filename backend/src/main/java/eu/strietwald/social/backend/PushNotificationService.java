@@ -6,14 +6,11 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.jose4j.lang.JoseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.annotation.PostConstruct;
 import nl.martijndwars.webpush.Notification;
@@ -34,7 +31,6 @@ public class PushNotificationService {
     private String vapidSubject;
 
     private PushService pushService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @PostConstruct
     public void init() throws GeneralSecurityException {
@@ -54,9 +50,7 @@ public class PushNotificationService {
             }
             for (PushSubscription sub : person.getPushSubscriptions()) {
                 try {
-                    String payload = objectMapper.writeValueAsString(
-                        new PushPayload(titel, bildUrl)
-                    );
+                    String payload = buildPayloadJson(titel, bildUrl);
                     Notification notification = new Notification(
                         sub.getEndpoint(),
                         sub.getP256dh(),
@@ -65,7 +59,7 @@ public class PushNotificationService {
                     );
                     pushService.send(notification);
                     logger.debug("Push sent to {} at endpoint {}", person.getName(), sub.getEndpoint());
-                } catch (GeneralSecurityException | JoseException | ExecutionException | InterruptedException e) {
+                } catch (GeneralSecurityException | ExecutionException | InterruptedException e) {
                     logger.error("Failed to send push to {} at endpoint {}: {}", person.getName(), sub.getEndpoint(), e.getMessage());
                 } catch (Exception e) {
                     logger.error("Unexpected error sending push to {}: {}", person.getName(), e.getMessage());
@@ -74,8 +68,21 @@ public class PushNotificationService {
         }
     }
 
-    /**
-     * Simple payload DTO for the push notification JSON.
-     */
-    public record PushPayload(String title, String image) {}
+    private String buildPayloadJson(String title, String image) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"title\":\"").append(escapeJson(title != null ? title : "")).append("\"");
+        if (image != null && !image.isEmpty()) {
+            sb.append(",\"image\":\"").append(escapeJson(image)).append("\"");
+        }
+        sb.append("}");
+        return sb.toString();
+    }
+
+    private String escapeJson(String value) {
+        return value.replace("\\", "\\\\")
+                    .replace("\"", "\\\"")
+                    .replace("\n", "\\n")
+                    .replace("\r", "\\r")
+                    .replace("\t", "\\t");
+    }
 }
