@@ -23,6 +23,18 @@ import { config } from './config';
 // Set axios base URL from config (empty string for local dev = relative URLs via proxy)
 axios.defaults.baseURL = config.apiUrl;
 
+// Redirect to login on 401 responses (token expired or invalid)
+axios.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response?.status === 401) {
+      sessionStorage.removeItem("token");
+      window.location.href = "/";
+    }
+    return Promise.reject(error);
+  }
+);
+
 interface PageResponse {
   content: Beitrag[];
   last: boolean;
@@ -146,9 +158,6 @@ function App() {
                 withCredentials: true
               }).then(resp => {
                 console.log("Gelesen-Response:", resp.status);
-                if (resp.status === 401) {
-                  window.location.href = "/";
-                }
               }, error => {
                 console.log("Gelesen-Error:", error);
               });

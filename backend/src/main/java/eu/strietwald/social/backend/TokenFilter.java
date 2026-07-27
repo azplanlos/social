@@ -47,9 +47,32 @@ public class TokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
         logger.info("TokenFilter doFilter");
-        JwtAuthenticationToken authentication = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (!(auth instanceof JwtAuthenticationToken authentication)) {
+            chain.doFilter(request, response);
+            return;
+        }
 
         String sub = authentication.getToken().getClaimAsString("sub");
+        if (sub == null || sub.isBlank()) {
+            sub = authentication.getToken().getSubject();
+        }
+        if (sub == null || sub.isBlank()) {
+            // Keycloak 26+ may not include 'sub' in access tokens by default.
+            // Fall back to a stable unique identifier from available claims.
+            logger.warn("JWT token has no 'sub' claim. Claims present: {}. Falling back to alternative identifier.", authentication.getToken().getClaims().keySet());
+            // Use 'preferred_username' as stable user identifier (unique in Keycloak)
+            sub = authentication.getToken().getClaimAsString("preferred_username");
+            if (sub == null || sub.isBlank()) {
+                sub = authentication.getToken().getClaimAsString("email");
+            }
+        }
+        if (sub == null || sub.isBlank()) {
+            logger.error("JWT token has no usable user identifier – returning 401");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token missing user identifier");
+            return;
+        }
+
         String displayName = authentication.getToken().getClaimAsString(usernameClaim);
         if (displayName == null) {
             displayName = authentication.getToken().getClaimAsString("name");

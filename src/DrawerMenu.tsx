@@ -12,6 +12,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import { Avatar } from '@mui/material';
 import { useNavigate } from 'react-router';
 import { Person } from './datenformat/Person';
+import { config } from './config';
 
 export type DrawerOpts = {
     open: boolean, setOpen: (open: boolean) => void, account?: Person
@@ -41,7 +42,7 @@ export default function TemporaryDrawer(opts: DrawerOpts) {
           <ListItemButton onClick={handleMyProfile}>
             <ListItemIcon>
               {opts.account?.avatar_url ? (
-                <Avatar src={opts.account.avatar_url} sx={{ width: 32, height: 32 }} />
+                <Avatar src={config.assetsUrl + '/' + opts.account.avatar_url} sx={{ width: 32, height: 32 }} />
               ) : (
                 <AccountCircleIcon />
               )}

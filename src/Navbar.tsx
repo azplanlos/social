@@ -17,6 +17,8 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import MoreIcon from '@mui/icons-material/MoreVert';
 import { Avatar, FormControl, InputLabel, Select } from '@mui/material';
 import { Person } from './datenformat/Person';
+import { config } from './config';
+import { useNavigate } from 'react-router';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -64,6 +66,7 @@ export type NavbarOpts = {
 }
 
 export default function PrimarySearchAppBar(opts: NavbarOpts) {
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] =
     React.useState<null | HTMLElement>(null);
@@ -147,16 +150,14 @@ export default function PrimarySearchAppBar(opts: NavbarOpts) {
         </IconButton>
         <p>Notifications</p>
       </MenuItem>
-      <MenuItem onClick={handleProfileMenuOpen}>
+      <MenuItem onClick={() => { handleMobileMenuClose(); navigate('/profile'); }}>
         <IconButton
           size="large"
           aria-label="account of current user"
-          aria-controls="primary-search-account-menu"
-          aria-haspopup="true"
           color="inherit"
         >
           {opts.account.avatar_url ? (
-            <Avatar src={opts.account.avatar_url} sx={{ width: 32, height: 32 }} />
+            <Avatar src={config.assetsUrl + '/' + opts.account.avatar_url} sx={{ width: 32, height: 32 }} />
           ) : (
             <AccountCircle />
           )}
@@ -223,13 +224,11 @@ export default function PrimarySearchAppBar(opts: NavbarOpts) {
               size="large"
               edge="end"
               aria-label="account of current user"
-              aria-controls={menuId}
-              aria-haspopup="true"
-              onClick={handleProfileMenuOpen}
+              onClick={() => navigate('/profile')}
               color="inherit"
             >
               {opts.account.avatar_url ? (
-                <Avatar src={opts.account.avatar_url} sx={{ width: 32, height: 32 }} />
+                <Avatar src={config.assetsUrl + '/' + opts.account.avatar_url} sx={{ width: 32, height: 32 }} />
               ) : (
                 <AccountCircle />
               )}
