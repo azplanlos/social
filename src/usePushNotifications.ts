@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { config } from './config';
 
@@ -16,67 +16,115 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray;
 }
 
+export type PushState = 'unsupported' | 'prompt' | 'subscribed' | 'denied';
+
 /**
- * Hook that registers the service worker and subscribes to push notifications.
- * Sends the subscription to the backend so the server can push to this device.
+ * Hook for managing push notification subscriptions.
+ * 
+ * On iOS (Safari 16.4+), push notifications only work when:
+ * - The app is added to the Home Screen (PWA / standalone mode)
+ * - The permission request is triggered by a user gesture (button click)
  *
- * @param token - The auth token (JWT) for backend requests. Subscription only happens when token is set.
+ * This hook provides:
+ * - `pushState`: current state of the push subscription
+ * - `subscribeToPush`: function to call on a button click to request permission and subscribe
+ * 
+ * On non-iOS browsers, it will attempt to auto-subscribe if permission was already granted.
  */
 export function usePushNotifications(token: string | null) {
+  const [pushState, setPushState] = useState<PushState>('unsupported');
+  const registrationRef = useRef<ServiceWorkerRegistration | null>(null);
   const subscribedRef = useRef(false);
 
+  // Check support and register service worker
   useEffect(() => {
-    if (!token || subscribedRef.current) return;
+    if (!token) return;
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      console.warn('Push notifications are not supported in this browser.');
+      setPushState('unsupported');
       return;
     }
 
-    async function subscribe() {
+    async function init() {
       try {
-        // Register the service worker
         const registration = await navigator.serviceWorker.register('/sw.js');
         await navigator.serviceWorker.ready;
+        registrationRef.current = registration;
 
-        // Request notification permission
-        const permission = await Notification.requestPermission();
-        if (permission !== 'granted') {
-          console.info('Push notification permission denied.');
+        // Check existing subscription
+        const existingSub = await registration.pushManager.getSubscription();
+        if (existingSub) {
+          // Already subscribed — send to backend in case this device isn't registered yet
+          await sendSubscriptionToBackend(existingSub, token!);
+          subscribedRef.current = true;
+          setPushState('subscribed');
           return;
         }
 
-        // Subscribe to push via the browser Push API
-        const applicationServerKey = urlBase64ToUint8Array(config.vapidPublicKey);
-        const subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey,
-        });
-
-        // Extract keys and send to backend
-        const subscriptionJson = subscription.toJSON();
-        await axios.post(
-          '/push/subscribe',
-          {
-            endpoint: subscriptionJson.endpoint,
-            p256dh: subscriptionJson.keys?.p256dh,
-            auth: subscriptionJson.keys?.auth,
-          },
-          {
-            headers: {
-              'X-Requested-With': 'XMLHttpRequest',
-              Authorization: 'Bearer ' + token,
-            },
-            withCredentials: true,
-          }
-        );
-
-        subscribedRef.current = true;
-        console.info('Push subscription registered successfully.');
+        // Check current permission state
+        if (Notification.permission === 'denied') {
+          setPushState('denied');
+        } else if (Notification.permission === 'granted') {
+          // Permission already granted (non-iOS or previously granted) — auto-subscribe
+          await doSubscribe(registration, token!);
+        } else {
+          // Need to prompt — must be triggered by user gesture on iOS
+          setPushState('prompt');
+        }
       } catch (error) {
-        console.error('Failed to subscribe to push notifications:', error);
+        console.error('Push init failed:', error);
+        setPushState('unsupported');
       }
     }
 
-    subscribe();
+    init();
   }, [token]);
+
+  // Function to be called from a user gesture (button click)
+  const subscribeToPush = useCallback(async () => {
+    if (!token || !registrationRef.current || subscribedRef.current) return;
+
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        setPushState('denied');
+        return;
+      }
+      await doSubscribe(registrationRef.current, token);
+    } catch (error) {
+      console.error('Push subscription failed:', error);
+    }
+  }, [token]);
+
+  async function doSubscribe(registration: ServiceWorkerRegistration, authToken: string) {
+    const applicationServerKey = urlBase64ToUint8Array(config.vapidPublicKey);
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey,
+    });
+    await sendSubscriptionToBackend(subscription, authToken);
+    subscribedRef.current = true;
+    setPushState('subscribed');
+  }
+
+  return { pushState, subscribeToPush };
+}
+
+async function sendSubscriptionToBackend(subscription: PushSubscription, token: string) {
+  const subscriptionJson = subscription.toJSON();
+  await axios.post(
+    '/push/subscribe',
+    {
+      endpoint: subscriptionJson.endpoint,
+      p256dh: subscriptionJson.keys?.p256dh,
+      auth: subscriptionJson.keys?.auth,
+    },
+    {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        Authorization: 'Bearer ' + token,
+      },
+      withCredentials: true,
+    }
+  );
+  console.info('Push subscription registered successfully.');
 }

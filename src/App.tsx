@@ -4,7 +4,7 @@ import axios from 'axios';
 import useAxios from 'axios-hooks';
 import BeitragCard from './BeitragCard';
 import { Beitrag } from './datenformat/Beitrag';
-import { CircularProgress, Container, CssBaseline, IconButton } from '@mui/material';
+import { CircularProgress, Container, CssBaseline, IconButton, Button, Snackbar, Alert } from '@mui/material';
 import Navbar from './Navbar';
 import DrawerMenu from './DrawerMenu';
 import NeuerBeitragButton from './NeuerBeitragButton';
@@ -15,6 +15,7 @@ import { useSessionStorage } from '@uidotdev/usehooks';
 import ImageViewer from 'simple-image-viewer-react19';
 import { BrowserRouter, Route, Routes, useNavigate } from 'react-router';
 import { Login } from '@mui/icons-material';
+import { Notifications } from '@mui/icons-material';
 import Token from './Token';
 import MyProfile from './MyProfile';
 import ContactListPage from './ContactListPage';
@@ -31,7 +32,10 @@ axios.interceptors.response.use(
   error => {
     if (error.response?.status === 401) {
       sessionStorage.removeItem("token");
-      window.location.href = "/";
+      // Only redirect if not already on the landing page to avoid infinite reload loops
+      if (window.location.pathname !== "/") {
+        window.location.href = "/";
+      }
     }
     return Promise.reject(error);
   }
@@ -51,7 +55,7 @@ function App() {
   const [token, setToken] = useSessionStorage<string | null>("token", null);
 
   // Register push notifications when user is authenticated
-  usePushNotifications(token);
+  const { pushState, subscribeToPush } = usePushNotifications(token);
 
   const [{data: user, loading: loadingUser, error: userError}, refetchUser] = useAxios<Person>({
     url: '/account',
@@ -59,7 +63,7 @@ function App() {
       Authorization: 'Bearer ' + token
     },
     withCredentials: true
-  });
+  }, { manual: !token });
   const [open, setOpen] = React.useState(false);
   const [bild, setBild] = React.useState<Blob>();
 
@@ -236,6 +240,19 @@ function App() {
               <FotoUpload waehlen={upload} onSelected={(file: File) => {setBearbeiten(true); setUpload(false); loadBild(file)}} />
               <PullToRefresh onRefresh={refetch}>
               <Container maxWidth="sm" sx={{marginTop: "64px"}}>
+                {pushState === 'prompt' && (
+                  <Alert
+                    severity="info"
+                    sx={{ mb: 2 }}
+                    action={
+                      <Button color="inherit" size="small" startIcon={<Notifications />} onClick={subscribeToPush}>
+                        Aktivieren
+                      </Button>
+                    }
+                  >
+                    Push-Benachrichtigungen aktivieren, um über neue Beiträge informiert zu werden.
+                  </Alert>
+                )}
                 {bearbeiten && <BeitragCard bearbeiten user={user} bild={bild} titel={titel} beschreibung={beschreibung} setTitel={setTitel}
                 setBeschreibung={setBeschreibung} setBearbeiten={finishBearbeiten} disabled={disabled} setDisabled={setDisabled} empfaenger={empfaenger} setEmpfaenger={setEmpfaenger} refetch={refetch} token={token}></BeitragCard>}
                 {cards}
