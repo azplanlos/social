@@ -22,7 +22,7 @@ public class PushSubscriptionController {
     @Autowired
     private PersonRepository personRepository;
 
-    @Value("${vapid.public-key}")
+    @Value("${vapid.public-key:}")
     private String vapidPublicKey;
 
     /**

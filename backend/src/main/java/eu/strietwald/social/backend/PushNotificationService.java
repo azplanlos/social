@@ -21,21 +21,37 @@ public class PushNotificationService {
 
     private static final Logger logger = LoggerFactory.getLogger(PushNotificationService.class);
 
-    @Value("${vapid.public-key}")
+    @Value("${vapid.public-key:}")
     private String vapidPublicKey;
 
-    @Value("${vapid.private-key}")
+    @Value("${vapid.private-key:}")
     private String vapidPrivateKey;
 
     @Value("${vapid.subject:mailto:admin@strietwald.eu}")
     private String vapidSubject;
 
     private PushService pushService;
+    private boolean enabled = false;
 
     @PostConstruct
-    public void init() throws GeneralSecurityException {
-        Security.addProvider(new BouncyCastleProvider());
-        pushService = new PushService(vapidPublicKey, vapidPrivateKey, vapidSubject);
+    public void init() {
+        if (vapidPublicKey == null || vapidPublicKey.isBlank()
+                || vapidPrivateKey == null || vapidPrivateKey.isBlank()) {
+            logger.warn("VAPID keys not configured — push notifications are disabled.");
+            return;
+        }
+        try {
+            Security.addProvider(new BouncyCastleProvider());
+            pushService = new PushService(vapidPublicKey, vapidPrivateKey, vapidSubject);
+            enabled = true;
+            logger.info("Push notification service initialized successfully.");
+        } catch (GeneralSecurityException e) {
+            logger.error("Failed to initialize push service: {}", e.getMessage());
+        }
+    }
+
+    public boolean isEnabled() {
+        return enabled;
     }
 
     /**
@@ -44,6 +60,9 @@ public class PushNotificationService {
      */
     @Async
     public void sendToPersons(List<Person> persons, String titel, String bildUrl) {
+        if (!enabled) {
+            return;
+        }
         for (Person person : persons) {
             if (person.getPushSubscriptions() == null || person.getPushSubscriptions().isEmpty()) {
                 continue;
