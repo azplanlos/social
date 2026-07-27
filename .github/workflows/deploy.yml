@@ -1,4 +1,4 @@
-name: Deploy Backend
+name: Deploy
 
 on:
   release:
@@ -9,7 +9,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}/backend
 
 jobs:
-  test:
+  test-backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,8 +25,25 @@ jobs:
         working-directory: backend
         run: chmod +x mvnw && ./mvnw test
 
-  build-and-push:
-    needs: test
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test -- --watchAll=false
+
+  build-and-push-backend:
+    needs: [test-backend, test-frontend]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -65,8 +82,8 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
-  deploy:
-    needs: build-and-push
+  deploy-backend:
+    needs: [build-and-push-backend]
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Railway
@@ -77,3 +94,35 @@ jobs:
             -d '{
               "query": "mutation { serviceInstanceRedeploy(serviceId: \"${{ vars.RAILWAY_SERVICE_ID }}\", environmentId: \"${{ vars.RAILWAY_ENVIRONMENT_ID }}\") }"
             }'
+
+  deploy-frontend:
+    needs: [test-backend, test-frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          CI: false
+          REACT_APP_API_URL: ${{ vars.REACT_APP_API_URL }}
+          REACT_APP_OIDC_AUTHORITY: ${{ vars.REACT_APP_OIDC_AUTHORITY }}
+          REACT_APP_OIDC_CLIENT_ID: ${{ vars.REACT_APP_OIDC_CLIENT_ID }}
+          REACT_APP_ASSETS_URL: ${{ vars.REACT_APP_ASSETS_URL }}
+          REACT_APP_VAPID_PUBLIC_KEY: ${{ vars.REACT_APP_VAPID_PUBLIC_KEY }}
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy build --project-name=mysocialapp --commit-dirty=true --branch=main
