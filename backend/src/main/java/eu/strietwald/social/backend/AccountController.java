@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @RestController
@@ -35,7 +35,7 @@ public class AccountController {
     private MongoTemplate mongoTemplate;
 
     @Autowired
-    private S3Client s3;
+    private S3AsyncClient s3;
 
     @Autowired
     private String s3Bucket;
@@ -51,7 +51,7 @@ public class AccountController {
         String filename = "avatar_" + UUID.randomUUID().toString() + ".jpg";
         PutObjectRequest request = PutObjectRequest.builder().bucket(s3Bucket).key(filename).build();
         try {
-            RequestBody body = RequestBody.fromInputStream(file.getInputStream(), file.getSize());
+            AsyncRequestBody body = AsyncRequestBody.fromInputStream(file.getInputStream(), file.getSize());
             s3.putObject(request, body);
             Person person = userInfo.getPerson();
             person.setAvatar_url(filename);

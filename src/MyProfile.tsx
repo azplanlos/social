@@ -18,6 +18,7 @@ import { Person } from './datenformat/Person';
 import axios from 'axios';
 import { useNavigate } from 'react-router';
 import { config } from './config';
+import Compress from 'compress.js';
 
 export type MyProfileProps = {
   user: Person;
@@ -39,10 +40,19 @@ export default function MyProfile({ user, token, onAvatarUpdated }: MyProfilePro
     if (!file) return;
 
     setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
 
     try {
+      const compressor = new Compress();
+      const compressedFiles = await compressor.compress([file], {
+        quality: 0.8,
+        maxWidth: 500,
+        maxHeight: 500,
+      });
+      const compressedFile = Compress.convertBase64ToFile(compressedFiles[0].data, compressedFiles[0].ext);
+
+      const formData = new FormData();
+      formData.append('file', compressedFile, 'avatar.jpg');
+
       await axios.post('/account/avatar', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
