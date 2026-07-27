@@ -18,6 +18,7 @@ import { Login } from '@mui/icons-material';
 import Token from './Token';
 import MyProfile from './MyProfile';
 import ContactListPage from './ContactListPage';
+import PullToRefresh from './PullToRefresh';
 import { config } from './config';
 
 // Set axios base URL from config (empty string for local dev = relative URLs via proxy)
@@ -65,10 +66,10 @@ function App() {
   const [hasMore, setHasMore] = useState(true);
   const loaderRef = useRef<HTMLDivElement | null>(null);
 
-  const fetchPage = useCallback((pageNum: number, reset: boolean = false) => {
-    if (loading) return;
+  const fetchPage = useCallback((pageNum: number, reset: boolean = false): Promise<void> => {
+    if (loading) return Promise.resolve();
     setLoading(true);
-    axios.get<PageResponse>('/beitraege', {
+    return axios.get<PageResponse>('/beitraege', {
       params: { page: pageNum, size: 10 },
       headers: { "X-Requested-With": 'XMLHttpRequest', Authorization: 'Bearer ' + token },
       withCredentials: true
@@ -109,7 +110,7 @@ function App() {
     setBeitraege([]);
     setPage(0);
     setHasMore(true);
-    fetchPage(0, true);
+    return fetchPage(0, true);
   }, [fetchPage]);
 
   const [bearbeiten, setBearbeiten] = React.useState(false);
@@ -229,6 +230,7 @@ function App() {
               <DrawerMenu open={open} setOpen={setOpen} account={user} />
               <NeuerBeitragButton fotoUpload={() => setUpload(true)} />
               <FotoUpload waehlen={upload} onSelected={(file: File) => {setBearbeiten(true); setUpload(false); loadBild(file)}} />
+              <PullToRefresh onRefresh={refetch}>
               <Container maxWidth="sm" sx={{marginTop: "64px"}}>
                 {bearbeiten && <BeitragCard bearbeiten user={user} bild={bild} titel={titel} beschreibung={beschreibung} setTitel={setTitel}
                 setBeschreibung={setBeschreibung} setBearbeiten={finishBearbeiten} disabled={disabled} setDisabled={setDisabled} empfaenger={empfaenger} setEmpfaenger={setEmpfaenger} refetch={refetch} token={token}></BeitragCard>}
@@ -237,6 +239,7 @@ function App() {
                   <CircularProgress />
                 </div>}
               </Container>
+              </PullToRefresh>
               </>
               }
               </>
