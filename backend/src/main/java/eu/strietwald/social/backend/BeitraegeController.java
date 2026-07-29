@@ -111,7 +111,7 @@ public class BeitraegeController {
                     .toList();
         }
 
-        pushNotificationService.sendToPersons(recipients, titel, bildUrl);
+        pushNotificationService.sendToPersons(recipients, userInfo.getPerson().getName(), titel, bildUrl, beitrag.getId());
     }
 
     @PostMapping("/foto")

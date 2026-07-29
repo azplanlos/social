@@ -19,6 +19,9 @@ self.addEventListener('push', function (event) {
     body: data.body || '',
     icon: '/logo192.png',
     badge: '/logo192.png',
+    data: {
+      beitragId: data.beitragId || null,
+    },
   };
 
   // If image URL is provided, add it to notification
@@ -32,18 +35,26 @@ self.addEventListener('push', function (event) {
 self.addEventListener('notificationclick', function (event) {
   event.notification.close();
 
-  // Open the app when notification is clicked
+  var beitragId = event.notification.data && event.notification.data.beitragId;
+  var targetUrl = '/secure';
+  if (beitragId) {
+    targetUrl = '/secure?beitrag=' + beitragId;
+  }
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
-      // Focus existing window if available
-      for (const client of clientList) {
-        if (client.url.includes('/secure') && 'focus' in client) {
-          return client.focus();
+      // If an existing window is open, navigate it to the deep link
+      for (var i = 0; i < clientList.length; i++) {
+        var client = clientList[i];
+        if ('focus' in client) {
+          client.focus();
+          client.navigate(targetUrl);
+          return;
         }
       }
       // Otherwise open a new window
       if (clients.openWindow) {
-        return clients.openWindow('/secure');
+        return clients.openWindow(targetUrl);
       }
     })
   );

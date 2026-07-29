@@ -3,7 +3,6 @@ package eu.strietwald.social.backend;
 import java.security.GeneralSecurityException;
 import java.security.Security;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
@@ -56,10 +55,10 @@ public class PushNotificationService {
 
     /**
      * Sends a push notification to all subscriptions of the given persons.
-     * Includes titel (title) and bild (image URL) in the payload.
+     * Message format: "autorName hat einen neuen Beitrag gepostet: titel"
      */
     @Async
-    public void sendToPersons(List<Person> persons, String titel, String bildUrl) {
+    public void sendToPersons(List<Person> persons, String autorName, String titel, String bildUrl, String beitragId) {
         if (!enabled) {
             return;
         }
@@ -68,30 +67,55 @@ public class PushNotificationService {
                 continue;
             }
             for (PushSubscription sub : person.getPushSubscriptions()) {
-                try {
-                    String payload = buildPayloadJson(titel, bildUrl);
-                    Notification notification = new Notification(
-                        sub.getEndpoint(),
-                        sub.getP256dh(),
-                        sub.getAuth(),
-                        payload.getBytes()
-                    );
-                    pushService.send(notification);
-                    logger.debug("Push sent to {} at endpoint {}", person.getName(), sub.getEndpoint());
-                } catch (GeneralSecurityException | ExecutionException | InterruptedException e) {
-                    logger.error("Failed to send push to {} at endpoint {}: {}", person.getName(), sub.getEndpoint(), e.getMessage());
-                } catch (Exception e) {
-                    logger.error("Unexpected error sending push to {}: {}", person.getName(), e.getMessage());
-                }
+                sendSingleNotification(sub, person.getName(), autorName, titel, bildUrl, beitragId);
             }
         }
     }
 
-    private String buildPayloadJson(String title, String image) {
+    private void sendSingleNotification(PushSubscription sub, String recipientName,
+            String autorName, String titel, String bildUrl, String beitragId) {
+        try {
+            String body = autorName + " hat einen neuen Beitrag gepostet: " + (titel != null ? titel : "");
+            String payload = buildPayloadJson("Neuer Beitrag", body, bildUrl, beitragId);
+
+            Notification notification = new Notification(
+                sub.getEndpoint(),
+                sub.getP256dh(),
+                sub.getAuth(),
+                payload.getBytes(),
+                86400 // TTL: 24 hours
+            );
+
+            // Use the library to prepare the HTTP request (handles encryption + VAPID signing)
+            // then extract headers and send via Java HttpClient for better FCM compatibility
+            org.apache.http.HttpResponse apacheResponse = pushService.send(notification);
+            int statusCode = apacheResponse.getStatusLine().getStatusCode();
+
+            if (statusCode == 201 || statusCode == 200) {
+                logger.debug("Push sent to {} at endpoint {}", recipientName, sub.getEndpoint());
+            } else if (statusCode == 410 || statusCode == 404) {
+                logger.info("Push subscription expired for {}, endpoint gone ({}): {}",
+                        recipientName, statusCode, sub.getEndpoint());
+            } else {
+                String responseBody = apacheResponse.getEntity() != null
+                        ? new String(apacheResponse.getEntity().getContent().readAllBytes())
+                        : "";
+                logger.warn("Push to {} returned status {}: {}", recipientName, statusCode, responseBody);
+            }
+        } catch (Exception e) {
+            logger.error("Failed to send push to {} at endpoint {}: {}", recipientName, sub.getEndpoint(), e.getMessage());
+        }
+    }
+
+    private String buildPayloadJson(String title, String body, String image, String beitragId) {
         StringBuilder sb = new StringBuilder();
-        sb.append("{\"title\":\"").append(escapeJson(title != null ? title : "")).append("\"");
+        sb.append("{\"title\":\"").append(escapeJson(title)).append("\"");
+        sb.append(",\"body\":\"").append(escapeJson(body)).append("\"");
         if (image != null && !image.isEmpty()) {
             sb.append(",\"image\":\"").append(escapeJson(image)).append("\"");
+        }
+        if (beitragId != null && !beitragId.isEmpty()) {
+            sb.append(",\"beitragId\":\"").append(escapeJson(beitragId)).append("\"");
         }
         sb.append("}");
         return sb.toString();

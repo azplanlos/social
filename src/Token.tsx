@@ -8,10 +8,18 @@ export default function Token({ setToken }: { setToken: (token: string) => void 
     const hash = window.location.hash.substring(1);
     const params = new URLSearchParams(hash);
     const accessToken = params.get('access_token');
+    const state = params.get('state');
 
     if (accessToken) {
       setToken(accessToken);
-      navigate("/secure");
+
+      // Navigate to the path encoded in the state parameter (deep link support)
+      if (state) {
+        const targetPath = decodeURIComponent(state);
+        navigate(targetPath);
+      } else {
+        navigate("/secure");
+      }
     }
   }, [navigate, setToken]);
 
