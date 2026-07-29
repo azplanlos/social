@@ -1,0 +1,237 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Erstelle Kommentar Entity und KommentarRequest DTO": [
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346515146
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346525125
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346771222
+      }
+    ],
+    "1.2 Erstelle KommentarRepository": [
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346515476
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346779145
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346805562
+      }
+    ],
+    "2.1 Implementiere GET /beitrag/{beitragId}/kommentare": [
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346515609
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346810030
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346868104
+      }
+    ],
+    "2.2 Implementiere POST /beitrag/{beitragId}/kommentar": [
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346515759
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346810755
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346868985
+      }
+    ],
+    "2.3 Implementiere POST /kommentar/{id}/like": [
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346515914
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346811567
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346869658
+      }
+    ],
+    "3. Checkpoint - Backend API verifizieren": [
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346516074
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785347294420
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785347387242
+      }
+    ],
+    "4.1 Erstelle Frontend-Datenmodell Kommentar.tsx": [
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346516305
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346525692
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346771953
+      }
+    ],
+    "4.2 Erstelle KommentarEingabe.tsx": [
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346516409
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346877686
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785347280161
+      }
+    ],
+    "4.3 Erstelle KommentarCard.tsx": [
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346516518
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346878479
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785347281006
+      }
+    ],
+    "4.4 Erstelle KommentarBereich.tsx": [
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346516639
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785347295055
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785347388031
+      }
+    ],
+    "5.1 Integriere KommentarBereich in die App": [
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346516769
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785347400221
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785347547913
+      }
+    ],
+    "6. Final Checkpoint - Alle Tests bestehen": [
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346516888
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785347553738
+      },
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785347643376
+      }
+    ],
+    "1. Backend: Datenmodell und Repository": [
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346805643
+      }
+    ],
+    "2. Backend: KommentarController": [
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785346869777
+      }
+    ],
+    "4. Frontend: Datenmodell und Komponenten": [
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785347388206
+      }
+    ],
+    "5. Frontend: Integration in BeitragCard": [
+      {
+        "executionId": "f08e9fc8-ca69-4cb4-a066-60d7839e6ede",
+        "chatSessionId": "sess_a8b72b18-bbac-4515-a4b4-74c831ef1aba",
+        "timestamp": 1785347548102
+      }
+    ]
+  }
+}

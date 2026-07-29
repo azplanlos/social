@@ -5,6 +5,8 @@ import useAxios from 'axios-hooks';
 import BeitragCard from './BeitragCard';
 import { Beitrag } from './datenformat/Beitrag';
 import { CircularProgress, Container, CssBaseline, IconButton, Button, Snackbar, Alert } from '@mui/material';
+import { ThemeProvider } from '@mui/material/styles';
+import liquidGlassTheme from './theme';
 import Navbar from './Navbar';
 import DrawerMenu from './DrawerMenu';
 import NeuerBeitragButton from './NeuerBeitragButton';
@@ -14,14 +16,17 @@ import Compress from 'compress.js';
 import { useSessionStorage } from '@uidotdev/usehooks';
 import ImageViewer from 'simple-image-viewer-react19';
 import { BrowserRouter, Route, Routes } from 'react-router';
-import { Login } from '@mui/icons-material';
 import { Notifications } from '@mui/icons-material';
 import Token from './Token';
 import MyProfile from './MyProfile';
 import ContactListPage from './ContactListPage';
 import PullToRefresh from './PullToRefresh';
+import LandingPage from './LandingPage';
 import { config } from './config';
 import { usePushNotifications } from './usePushNotifications';
+import { BackgroundProvider } from './BackgroundContext';
+import BackgroundSettings from './BackgroundSettings';
+import StatistikenPage from './StatistikenPage';
 
 // Set axios base URL from config (empty string for local dev = relative URLs via proxy)
 axios.defaults.baseURL = config.apiUrl;
@@ -255,17 +260,23 @@ function App() {
   
 
   return (
+    <BackgroundProvider>
+    <ThemeProvider theme={liquidGlassTheme}>
     <BrowserRouter>
         <Routes>
-          <Route path="/" element={<IconButton onClick={() => {
-            triggerLogin('/secure');
-          }}><Login /></IconButton>} />
+          <Route path="/" element={<LandingPage onLogin={() => triggerLogin('/secure')} />} />
           <Route path={config.oidc.redirectPath} element={<Token setToken={setToken} />} />
           <Route path="/profile" element={
             user ? <MyProfile user={user} token={token} onAvatarUpdated={refetchUser} /> : <></>
           } />
           <Route path="/contactlists" element={
             <ContactListPage token={token} />
+          } />
+          <Route path="/backgrounds" element={
+            <BackgroundSettings />
+          } />
+          <Route path="/statistiken" element={
+            <StatistikenPage token={token} />
           } />
           <Route path="/secure" element={
             <>
@@ -282,7 +293,7 @@ function App() {
               }
               {!isViewerOpen && user && <>
               <CssBaseline />
-              <Navbar drawerOpen={setOpen} account={user} />
+              <Navbar drawerOpen={setOpen} account={user} token={token} />
               <DrawerMenu open={open} setOpen={setOpen} account={user} />
               <NeuerBeitragButton fotoUpload={() => setUpload(true)} />
               <FotoUpload waehlen={upload} onSelected={(file: File) => {setBearbeiten(true); setUpload(false); loadBild(file)}} />
@@ -315,7 +326,8 @@ function App() {
           } />
         </Routes>
       </BrowserRouter>
-    
+    </ThemeProvider>
+    </BackgroundProvider>
   );
 }
 

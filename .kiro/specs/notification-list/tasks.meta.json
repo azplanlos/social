@@ -1,0 +1,288 @@
+{
+  "pbtResults": {
+    "2.2 Property-Tests für NotificationService schreiben (jqwik)": {
+      "status": "passed",
+      "lastRunTimestamp": 1785348691572
+    },
+    "3.2 Property-Tests für NotificationController schreiben (jqwik)": {
+      "status": "passed",
+      "lastRunTimestamp": 1785349034064
+    },
+    "7.2 Property-Tests für Badge-Logik und Zeitstempel-Formatierung (fast-check)": {
+      "status": "passed",
+      "lastRunTimestamp": 1785351153716
+    }
+  },
+  "executionHistory": {
+    "1.1 Notification-Entity und NotificationRepository erstellen": [
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785347914602
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785347929259
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785348136972
+      }
+    ],
+    "2.1 NotificationService erstellen": [
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785347914981
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785348145249
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785348476803
+      }
+    ],
+    "2.2 Property-Tests für NotificationService schreiben (jqwik)": [
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785347915370
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785348486049
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785348707944
+      }
+    ],
+    "3.1 NotificationController erstellen": [
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785347915900
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785348486765
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785348708858
+      }
+    ],
+    "3.2 Property-Tests für NotificationController schreiben (jqwik)": [
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785347916147
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785348715901
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785349048075
+      }
+    ],
+    "4.1 BeitraegeController um NotificationService-Aufruf erweitern": [
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785347916311
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785348716841
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785349049144
+      }
+    ],
+    "5. Checkpoint - Backend verifizieren": [
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785347916629
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785349064797
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785349608785
+      }
+    ],
+    "6.1 Notification-TypeScript-Interface erstellen": [
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785347916895
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785347930804
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785348137212
+      }
+    ],
+    "6.2 useNotifications Hook implementieren": [
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785347917056
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785348145933
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785348477489
+      }
+    ],
+    "7.1 NotificationPanel mit MUI Popover implementieren": [
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785347917270
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785349065888
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785349609591
+      }
+    ],
+    "7.2 Property-Tests für Badge-Logik und Zeitstempel-Formatierung (fast-check)": [
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785347917470
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785349617550
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785351176918
+      }
+    ],
+    "8.1 Navbar um NotificationPanel und Badge erweitern": [
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785347917637
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785349618355
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785351177325
+      }
+    ],
+    "9. Final Checkpoint - Gesamtsystem verifizieren": [
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785347917817
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785351183811
+      },
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785351233992
+      }
+    ],
+    "1. Backend: Datenmodell und Repository erstellen": [
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785348137388
+      }
+    ],
+    "6. Frontend: Datentyp und Hook erstellen": [
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785348477979
+      }
+    ],
+    "2. Backend: NotificationService implementieren": [
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785348708216
+      }
+    ],
+    "3. Backend: NotificationController implementieren": [
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785349048576
+      }
+    ],
+    "4. Backend: Integration in BeitraegeController": [
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785349049658
+      }
+    ],
+    "7. Frontend: NotificationPanel-Komponente erstellen": [
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785351178077
+      }
+    ],
+    "8. Frontend: Integration in Navbar": [
+      {
+        "executionId": "65ff0398-ffbc-4956-bbd6-3db2b8fe4493",
+        "chatSessionId": "sess_2f3c641e-523c-4d37-86d7-f000596a229b",
+        "timestamp": 1785351178534
+      }
+    ]
+  }
+}
