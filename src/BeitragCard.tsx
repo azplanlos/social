@@ -1,13 +1,16 @@
-import { Card, CardHeader, Avatar, IconButton, CardMedia, CardContent, Typography, CardActions, Badge, TextField, Tooltip } from "@mui/material";
+import { useState } from "react";
+import { Card, CardHeader, Avatar, IconButton, CardMedia, CardContent, Typography, CardActions, Badge, TextField, Tooltip, Box, Collapse } from "@mui/material";
 import './BeitragCard.css';
 import { Beitrag } from "./datenformat/Beitrag";
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
 import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import SaveIcon from "@mui/icons-material/Save";
 import { Person } from "./datenformat/Person";
 import axios from "axios";
 import EmpfaengerAuswahl from "./EmpfaengerAuswahl";
+import KommentarBereich from "./KommentarBereich";
 import { config } from "./config";
 
 export type BeitragCardProps = {
@@ -30,6 +33,7 @@ export type BeitragCardProps = {
 }
 
 function BeitragCard(props: BeitragCardProps) {
+  const [kommentareSichtbar, setKommentareSichtbar] = useState(false);
   const beitrag = props.beitrag;
   const user = props.beitrag?.autor || props.user;
   const bild = (props.beitrag?.link && config.assetsUrl + '/' + props.beitrag?.link) || (props.bild && URL.createObjectURL(props.bild));
@@ -91,7 +95,21 @@ function BeitragCard(props: BeitragCardProps) {
   }
 
   return(
-    <Card sx={{ maxWidth: 345 }} className="beitrag" key={beitrag?.id || "neu"}>
+    <Card sx={{ 
+      maxWidth: 345, 
+      background: 'rgba(255, 255, 255, 0.1)',
+      backdropFilter: 'blur(16px) saturate(140%)',
+      WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+      border: '1px solid rgba(255, 255, 255, 0.2)',
+      borderRadius: '16px',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
+      overflow: 'hidden',
+      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+      '&:hover': {
+        transform: 'translateY(-2px)',
+        boxShadow: '0 12px 40px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+      }
+    }} className="beitrag" key={beitrag?.id || "neu"}>
       <CardHeader
         avatar={
             user?.avatar_url ?
@@ -112,6 +130,7 @@ function BeitragCard(props: BeitragCardProps) {
         image={bild}
         alt={beitrag?.titel}
         onClick={props.onClick}
+        sx={{ borderRadius: '8px', margin: '0 8px', width: 'calc(100% - 16px)' }}
       />
       <CardContent>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -141,15 +160,17 @@ function BeitragCard(props: BeitragCardProps) {
         <Tooltip title={props.beitrag?.gefaellt?.map(p => p.name)?.join(', ')}>
           <IconButton onClick={like}>
           <Badge badgeContent={beitrag.gefaellt_num} color="primary">
-              <ThumbUpAltIcon />
+              <ThumbUpAltIcon color={beitrag.gefaellt?.some(p => p.name === props.user?.name) ? "primary" : "inherit"} />
           </Badge>
           </IconButton>
         </Tooltip>
-        <IconButton onClick={dislike}>
-        <Badge badgeContent={beitrag.gefaellt_nicht_num} color="primary">
-            <ThumbDownAltIcon />
-        </Badge>
-        </IconButton>
+        <Tooltip title={props.beitrag?.gefaellt_nicht?.map(p => p.name)?.join(', ')}>
+          <IconButton onClick={dislike}>
+          <Badge badgeContent={beitrag.gefaellt_nicht_num} color="primary">
+              <ThumbDownAltIcon color={beitrag.gefaellt_nicht?.some(p => p.name === props.user?.name) ? "error" : "inherit"} />
+          </Badge>
+          </IconButton>
+        </Tooltip>
         <Tooltip title={props.beitrag?.angesehen?.map(p => p.name)?.join(', ')}>
           <IconButton>
           <Badge badgeContent={beitrag.angesehen_num} color="primary">
@@ -157,8 +178,22 @@ function BeitragCard(props: BeitragCardProps) {
           </Badge>
           </IconButton>
         </Tooltip>
+        <IconButton onClick={() => setKommentareSichtbar(!kommentareSichtbar)}>
+            <ChatBubbleOutlineIcon color={kommentareSichtbar ? "primary" : "inherit"} />
+        </IconButton>
       </CardActions>
     }
+    {beitrag && (
+        <Collapse in={kommentareSichtbar}>
+            <Box sx={{ padding: '8px 16px 16px' }}>
+                <KommentarBereich
+                    beitragId={beitrag.id}
+                    token={props.token}
+                    user={props.user}
+                />
+            </Box>
+        </Collapse>
+    )}
     {props.bearbeiten && <IconButton onClick={() => save()} disabled={props.disabled}>
             <SaveIcon />
         </IconButton>}

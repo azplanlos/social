@@ -36,3 +36,60 @@
     transform: rotate(360deg);
   }
 }
+
+/* Global Liquid Glass Background – wird dynamisch via BackgroundContext gesetzt */
+body {
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* Landing Page */
+.landing-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.landing-hero {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(25, 118, 210, 0.8) 0%, rgba(21, 101, 192, 0.7) 40%, rgba(13, 71, 161, 0.9) 100%);
+  position: relative;
+  overflow: hidden;
+  padding: 40px 16px;
+  backdrop-filter: blur(4px);
+}
+
+.landing-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+  animation: landing-pulse 8s ease-in-out infinite;
+}
+
+.landing-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(to top, rgba(102, 126, 234, 0.3), transparent);
+}
+
+@keyframes landing-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}

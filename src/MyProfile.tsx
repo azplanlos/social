@@ -26,6 +26,36 @@ export type MyProfileProps = {
   onAvatarUpdated: () => void;
 };
 
+// Gemeinsame Liquid Glass Card Styles
+const glassCardSx = {
+  background: 'rgba(255, 255, 255, 0.12)',
+  backdropFilter: 'blur(20px) saturate(180%)',
+  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+  border: '1px solid rgba(255, 255, 255, 0.2)',
+  borderRadius: '20px',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
+  color: '#fff',
+};
+
+// Gemeinsame Liquid Glass Button Styles
+const glassButtonSx = {
+  background: 'rgba(255, 255, 255, 0.15)',
+  backdropFilter: 'blur(12px) saturate(160%)',
+  WebkitBackdropFilter: 'blur(12px) saturate(160%)',
+  border: '1px solid rgba(255, 255, 255, 0.25)',
+  borderRadius: '50px',
+  color: '#fff',
+  textTransform: 'none' as const,
+  fontWeight: 500,
+  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+  transition: 'all 0.2s ease',
+  '&:hover': {
+    background: 'rgba(255, 255, 255, 0.25)',
+    boxShadow: '0 6px 24px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+    transform: 'translateY(-1px)',
+  },
+};
+
 export default function MyProfile({ user, token, onAvatarUpdated }: MyProfileProps) {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -70,7 +100,6 @@ export default function MyProfile({ user, token, onAvatarUpdated }: MyProfilePro
   };
 
   const handlePasswordChange = () => {
-    // Keycloak-style account URL (local), Zitadel has its own account page
     const accountUrl = config.oidc.authority.includes('/realms/')
       ? `${config.oidc.authority}/account/#/security/signingin`
       : `${config.oidc.authority}/ui/console/users/me`;
@@ -84,24 +113,30 @@ export default function MyProfile({ user, token, onAvatarUpdated }: MyProfilePro
         <Button
           startIcon={<ArrowBackIcon />}
           onClick={() => navigate('/secure')}
-          sx={{ mb: 2 }}
+          sx={{ ...glassButtonSx, mb: 2, px: 3, py: 1 }}
         >
           Zurück
         </Button>
 
-        <Card>
+        <Card sx={glassCardSx}>
           <CardContent>
-            <Typography variant="h5" gutterBottom>
+            <Typography variant="h5" gutterBottom sx={{ color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
               Mein Profil
             </Typography>
-            <Divider sx={{ mb: 3 }} />
+            <Divider sx={{ mb: 3, borderColor: 'rgba(255, 255, 255, 0.2)' }} />
 
             {/* Avatar Section */}
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
               <Box sx={{ position: 'relative' }}>
                 <Avatar
                   src={user.avatar_url ? config.assetsUrl + '/' + user.avatar_url : undefined}
-                  sx={{ width: 120, height: 120, fontSize: 48 }}
+                  sx={{
+                    width: 120,
+                    height: 120,
+                    fontSize: 48,
+                    border: '3px solid rgba(255, 255, 255, 0.3)',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                  }}
                 >
                   {user.name?.charAt(0).toUpperCase()}
                 </Avatar>
@@ -112,9 +147,14 @@ export default function MyProfile({ user, token, onAvatarUpdated }: MyProfilePro
                     position: 'absolute',
                     bottom: 0,
                     right: 0,
-                    backgroundColor: 'primary.main',
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
                     color: 'white',
-                    '&:hover': { backgroundColor: 'primary.dark' }
+                    '&:hover': {
+                      background: 'rgba(255, 255, 255, 0.35)',
+                    }
                   }}
                   size="small"
                   aria-label="Avatar hochladen"
@@ -122,10 +162,10 @@ export default function MyProfile({ user, token, onAvatarUpdated }: MyProfilePro
                   <PhotoCameraIcon fontSize="small" />
                 </IconButton>
               </Box>
-              <Typography variant="h6" sx={{ mt: 1 }}>
+              <Typography variant="h6" sx={{ mt: 1, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
                 {user.name}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                 {uploading ? 'Avatar wird hochgeladen...' : 'Klicke auf das Kamera-Icon um deinen Avatar zu ändern'}
               </Typography>
               <input
@@ -137,21 +177,22 @@ export default function MyProfile({ user, token, onAvatarUpdated }: MyProfilePro
               />
             </Box>
 
-            <Divider sx={{ mb: 3 }} />
+            <Divider sx={{ mb: 3, borderColor: 'rgba(255, 255, 255, 0.2)' }} />
 
             {/* Password Change Section */}
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Typography variant="subtitle1" gutterBottom>
+              <Typography variant="subtitle1" gutterBottom sx={{ color: '#fff' }}>
                 Sicherheit
               </Typography>
               <Button
                 variant="outlined"
                 startIcon={<LockResetIcon />}
                 onClick={handlePasswordChange}
+                sx={glassButtonSx}
               >
                 Passwort ändern
               </Button>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              <Typography variant="body2" sx={{ mt: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
                 Du wirst zum Identity Provider weitergeleitet
               </Typography>
             </Box>

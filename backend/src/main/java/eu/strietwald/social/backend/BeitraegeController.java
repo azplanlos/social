@@ -46,6 +46,9 @@ public class BeitraegeController {
     @Autowired
     private PushNotificationService pushNotificationService;
 
+    @Autowired
+    private NotificationService notificationService;
+
     Logger logger = LoggerFactory.getLogger(BeitraegeController.class);
 
     public BeitraegeController(BeitragRepository repository) {
@@ -112,6 +115,7 @@ public class BeitraegeController {
         }
 
         pushNotificationService.sendToPersons(recipients, userInfo.getPerson().getName(), titel, bildUrl, beitrag.getId());
+        notificationService.createNotifications(beitrag, recipients);
     }
 
     @PostMapping("/foto")
@@ -136,26 +140,54 @@ public class BeitraegeController {
     public void like(@PathVariable("id") String id) {
         logger.info("like #" + id);
         Beitrag beitrag = this.repository.findById(id).orElseThrow();
-        if (beitrag.getGefaellt().stream().noneMatch(p -> Objects.equals(p.getName(), userInfo.getPerson().getName()))) {
-            beitrag.setGefaellt_num(beitrag.getGefaellt_num() + 1);
-            beitrag.getGefaellt().add(userInfo.getPerson());
-            this.repository.save(beitrag);
+        String currentUser = userInfo.getPerson().getName();
+        boolean alreadyLiked = beitrag.getGefaellt().stream()
+                .anyMatch(p -> Objects.equals(p.getName(), currentUser));
+
+        if (alreadyLiked) {
+            // Unlike: Like entfernen
+            beitrag.getGefaellt().removeIf(p -> Objects.equals(p.getName(), currentUser));
+            beitrag.setGefaellt_num(beitrag.getGefaellt_num() - 1);
         } else {
-            logger.warn("Beitrag schon geliked");
+            // Like: hinzufügen und ggf. Dislike entfernen
+            beitrag.getGefaellt().add(userInfo.getPerson());
+            beitrag.setGefaellt_num(beitrag.getGefaellt_num() + 1);
+            // Falls vorher disliked, Dislike entfernen
+            boolean wasDisliked = beitrag.getGefaelltNicht().stream()
+                    .anyMatch(p -> Objects.equals(p.getName(), currentUser));
+            if (wasDisliked) {
+                beitrag.getGefaelltNicht().removeIf(p -> Objects.equals(p.getName(), currentUser));
+                beitrag.setGefaellt_nicht_num(beitrag.getGefaellt_nicht_num() - 1);
+            }
         }
+        this.repository.save(beitrag);
     }
 
     @PostMapping("/beitrag/{id}/dislike")
     public void dislike(@PathVariable("id") String id) {
         logger.info("dislike #" + id);
         Beitrag beitrag = this.repository.findById(id).orElseThrow();
-        if (beitrag.getGefaelltNicht().stream().noneMatch(p -> Objects.equals(p.getName(), userInfo.getPerson().getName()))) {
-            beitrag.setGefaellt_nicht_num(beitrag.getGefaellt_nicht_num() + 1);
-            beitrag.getGefaelltNicht().add(userInfo.getPerson());
-            this.repository.save(beitrag);
+        String currentUser = userInfo.getPerson().getName();
+        boolean alreadyDisliked = beitrag.getGefaelltNicht().stream()
+                .anyMatch(p -> Objects.equals(p.getName(), currentUser));
+
+        if (alreadyDisliked) {
+            // Un-Dislike: Dislike entfernen
+            beitrag.getGefaelltNicht().removeIf(p -> Objects.equals(p.getName(), currentUser));
+            beitrag.setGefaellt_nicht_num(beitrag.getGefaellt_nicht_num() - 1);
         } else {
-            logger.warn("Beitrag schon geliked");
+            // Dislike: hinzufügen und ggf. Like entfernen
+            beitrag.getGefaelltNicht().add(userInfo.getPerson());
+            beitrag.setGefaellt_nicht_num(beitrag.getGefaellt_nicht_num() + 1);
+            // Falls vorher geliked, Like entfernen
+            boolean wasLiked = beitrag.getGefaellt().stream()
+                    .anyMatch(p -> Objects.equals(p.getName(), currentUser));
+            if (wasLiked) {
+                beitrag.getGefaellt().removeIf(p -> Objects.equals(p.getName(), currentUser));
+                beitrag.setGefaellt_num(beitrag.getGefaellt_num() - 1);
+            }
         }
+        this.repository.save(beitrag);
     }
 
     @PostMapping("/beitrag/{id}/gelesen")
