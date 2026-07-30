@@ -11,42 +11,30 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 import lombok.Getter;
 import lombok.Setter;
 
-@Document(collection = "notifications")
+@Document(collection = "chat_messages")
 @Getter
 @Setter
-public class Notification {
+public class ChatMessage {
 
     @MongoId(FieldType.OBJECT_ID)
     private String id;
 
     @Field
     @Indexed
-    private String recipientId;
+    private String conversationId;
 
     @Field
     private String senderName;
 
     @Field
-    private String beitragTitel;
+    private String senderAvatarUrl;
 
     @Field
-    private String beitragId;
-
-    /** "beitrag" (default/legacy) or "chat" */
-    @Field
-    private String type;
-
-    /** Nur für type="chat": die zugehörige Konversations-ID */
-    @Field
-    private String conversationId;
-
-    /** Nur für type="chat": Vorschau der Nachricht */
-    @Field
-    private String messagePreview;
+    private String content;
 
     @Field
     @Indexed
-    private Instant createdAt;
+    private Instant timestamp;
 
     @Field
     private boolean read;

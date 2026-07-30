@@ -21,6 +21,8 @@ self.addEventListener('push', function (event) {
     badge: '/logo192.png',
     data: {
       beitragId: data.beitragId || null,
+      conversationId: data.conversationId || null,
+      type: data.type || 'beitrag',
     },
   };
 
@@ -35,10 +37,13 @@ self.addEventListener('push', function (event) {
 self.addEventListener('notificationclick', function (event) {
   event.notification.close();
 
-  var beitragId = event.notification.data && event.notification.data.beitragId;
+  var notifData = event.notification.data || {};
   var targetUrl = '/secure';
-  if (beitragId) {
-    targetUrl = '/secure?beitrag=' + beitragId;
+
+  if (notifData.type === 'chat' && notifData.conversationId) {
+    targetUrl = '/chat';
+  } else if (notifData.beitragId) {
+    targetUrl = '/secure?beitrag=' + notifData.beitragId;
   }
 
   event.waitUntil(

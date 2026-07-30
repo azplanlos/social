@@ -6,11 +6,12 @@ import BeitragCard from './BeitragCard';
 import { Beitrag } from './datenformat/Beitrag';
 import { CircularProgress, Container, CssBaseline, IconButton, Button, Snackbar, Alert } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
-import liquidGlassTheme from './theme';
+import { ThemeModeProvider, useThemeMode } from './ThemeContext';
 import Navbar from './Navbar';
 import DrawerMenu from './DrawerMenu';
 import NeuerBeitragButton from './NeuerBeitragButton';
 import FotoUpload from './FotoUpload';
+import CameraCapture from './CameraCapture';
 import { Person } from './datenformat/Person';
 import Compress from 'compress.js';
 import { useSessionStorage } from '@uidotdev/usehooks';
@@ -27,6 +28,9 @@ import { usePushNotifications } from './usePushNotifications';
 import { BackgroundProvider } from './BackgroundContext';
 import BackgroundSettings from './BackgroundSettings';
 import StatistikenPage from './StatistikenPage';
+import BearbeitenPage from './BearbeitenPage';
+import ChatPage from './ChatPage';
+import StoriesPage from './StoriesPage';
 
 // Set axios base URL from config (empty string for local dev = relative URLs via proxy)
 axios.defaults.baseURL = config.apiUrl;
@@ -64,6 +68,12 @@ interface PageResponse {
   number: number;
   totalPages: number;
   totalElements: number;
+}
+
+/** Wrapper, der den ThemeProvider mit dem aktuellen Theme-Modus bereitstellt */
+function ThemedAppShell({ children }: { children: React.ReactNode }) {
+  const { theme } = useThemeMode();
+  return <ThemeProvider theme={theme}>{children}</ThemeProvider>;
 }
 
 
@@ -181,10 +191,12 @@ function App() {
 
   const [bearbeiten, setBearbeiten] = React.useState(false);
   const [upload, setUpload] = React.useState(false);
+  const [cameraOpen, setCameraOpen] = React.useState(false);
   const [titel, setTitel] = React.useState("");
   const [beschreibung, setBeschreibung] = React.useState("");
   const [disabled, setDisabled] = React.useState(false);
   const [empfaenger, setEmpfaenger] = React.useState<Person[]>([]);
+  const [sichtbarkeitsDauer, setSichtbarkeitsDauer] = React.useState<string>('unbegrenzt');
   const [visibleState, setVisibleState] = React.useState<string[]>([]);
   const refs = useRef<Element[]>([]);
   const [currentImage, setCurrentImage] = useState(0);
@@ -253,6 +265,7 @@ function App() {
     if (bearbeiten === true && b === false) {
       refetch();
       setEmpfaenger([]);
+      setSichtbarkeitsDauer('unbegrenzt');
     }
     setBearbeiten(b);
   }
@@ -260,8 +273,9 @@ function App() {
   
 
   return (
+    <ThemeModeProvider>
+    <ThemedAppShell>
     <BackgroundProvider>
-    <ThemeProvider theme={liquidGlassTheme}>
     <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage onLogin={() => triggerLogin('/secure')} />} />
@@ -277,6 +291,15 @@ function App() {
           } />
           <Route path="/statistiken" element={
             <StatistikenPage token={token} />
+          } />
+          <Route path="/bearbeiten" element={
+            <BearbeitenPage token={token} />
+          } />
+          <Route path="/chat" element={
+            <ChatPage token={token} />
+          } />
+          <Route path="/stories" element={
+            <StoriesPage token={token} user={user} />
           } />
           <Route path="/secure" element={
             <>
@@ -295,10 +318,11 @@ function App() {
               <CssBaseline />
               <Navbar drawerOpen={setOpen} account={user} token={token} />
               <DrawerMenu open={open} setOpen={setOpen} account={user} />
-              <NeuerBeitragButton fotoUpload={() => setUpload(true)} />
+              <NeuerBeitragButton fotoUpload={() => setUpload(true)} fotoAufnehmen={() => setCameraOpen(true)} />
               <FotoUpload waehlen={upload} onSelected={(file: File) => {setBearbeiten(true); setUpload(false); loadBild(file)}} />
+              <CameraCapture open={cameraOpen} onCapture={(file: File) => {setCameraOpen(false); setBearbeiten(true); loadBild(file);}} onClose={() => setCameraOpen(false)} />
               <PullToRefresh onRefresh={refetch}>
-              <Container maxWidth="sm" sx={{marginTop: "64px"}}>
+              <Container maxWidth="sm" sx={{marginTop: "64px", px: { xs: 1, sm: 3 }, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
                 {pushState === 'prompt' && (
                   <Alert
                     severity="info"
@@ -313,7 +337,7 @@ function App() {
                   </Alert>
                 )}
                 {bearbeiten && <BeitragCard bearbeiten user={user} bild={bild} titel={titel} beschreibung={beschreibung} setTitel={setTitel}
-                setBeschreibung={setBeschreibung} setBearbeiten={finishBearbeiten} disabled={disabled} setDisabled={setDisabled} empfaenger={empfaenger} setEmpfaenger={setEmpfaenger} refetch={refetch} token={token}></BeitragCard>}
+                setBeschreibung={setBeschreibung} setBearbeiten={finishBearbeiten} disabled={disabled} setDisabled={setDisabled} empfaenger={empfaenger} setEmpfaenger={setEmpfaenger} sichtbarkeitsDauer={sichtbarkeitsDauer} setSichtbarkeitsDauer={setSichtbarkeitsDauer} refetch={refetch} token={token}></BeitragCard>}
                 {cards}
                 {hasMore && <div ref={loaderRef} style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
                   <CircularProgress />
@@ -326,8 +350,9 @@ function App() {
           } />
         </Routes>
       </BrowserRouter>
-    </ThemeProvider>
     </BackgroundProvider>
+    </ThemedAppShell>
+    </ThemeModeProvider>
   );
 }
 

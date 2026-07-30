@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, CardHeader, Avatar, IconButton, CardMedia, CardContent, Typography, CardActions, Badge, TextField, Tooltip, Box, Collapse } from "@mui/material";
+import { Card, CardHeader, Avatar, IconButton, CardMedia, CardContent, Typography, CardActions, Badge, TextField, Tooltip, Box, Collapse, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import './BeitragCard.css';
 import { Beitrag } from "./datenformat/Beitrag";
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
@@ -27,6 +27,8 @@ export type BeitragCardProps = {
   setDisabled?: (b: boolean) => void;
   empfaenger?: Person[];
   setEmpfaenger?: (e: Person[]) => void;
+  sichtbarkeitsDauer?: string;
+  setSichtbarkeitsDauer?: (d: string) => void;
   refetch: () => void;
   onClick?: () => void;
   token: string | null;
@@ -37,6 +39,7 @@ function BeitragCard(props: BeitragCardProps) {
   const beitrag = props.beitrag;
   const user = props.beitrag?.autor || props.user;
   const bild = (props.beitrag?.link && config.assetsUrl + '/' + props.beitrag?.link) || (props.bild && URL.createObjectURL(props.bild));
+  const istEigenerBeitrag = beitrag?.autor?.name != null && beitrag.autor.name === props.user?.name;
 
   function save(): void {
     props.setDisabled!(true);
@@ -54,13 +57,21 @@ function BeitragCard(props: BeitragCardProps) {
     ).then(response => {
       console.log(response.status);
       const bildUrl = response.data;
+      // Ablaufdatum berechnen
+      let ablaufDatum: Date | undefined = undefined;
+      if (props.sichtbarkeitsDauer && props.sichtbarkeitsDauer !== 'unbegrenzt') {
+        const jetzt = new Date();
+        const stunden = parseInt(props.sichtbarkeitsDauer);
+        ablaufDatum = new Date(jetzt.getTime() + stunden * 60 * 60 * 1000);
+      }
       const body = {
         link: bildUrl,
         titel: props.titel,
         beschreibung: props.beschreibung,
         autor: props.user,
         datum: new Date(),
-        empfaenger: props.empfaenger || []
+        empfaenger: props.empfaenger || [],
+        ablaufDatum: ablaufDatum
       } as Beitrag;
       return axios.post('/beitrag', body, {
         headers: { "X-Requested-With": 'XMLHttpRequest',
@@ -96,7 +107,8 @@ function BeitragCard(props: BeitragCardProps) {
 
   return(
     <Card sx={{ 
-      maxWidth: 345, 
+      width: '100%',
+      maxWidth: { xs: '100%', sm: 345 },
       background: 'rgba(255, 255, 255, 0.1)',
       backdropFilter: 'blur(16px) saturate(140%)',
       WebkitBackdropFilter: 'blur(16px) saturate(140%)',
@@ -154,22 +166,46 @@ function BeitragCard(props: BeitragCardProps) {
                 setEmpfaenger={props.setEmpfaenger}
               />
             )}
+            {props.setSichtbarkeitsDauer && (
+              <FormControl fullWidth variant="standard" sx={{ mt: 2 }}>
+                <InputLabel id="sichtbarkeit-dauer-label">Sichtbarkeitsdauer</InputLabel>
+                <Select
+                  labelId="sichtbarkeit-dauer-label"
+                  value={props.sichtbarkeitsDauer || 'unbegrenzt'}
+                  onChange={(e) => props.setSichtbarkeitsDauer!(e.target.value)}
+                  label="Sichtbarkeitsdauer"
+                >
+                  <MenuItem value="unbegrenzt">Unbegrenzt</MenuItem>
+                  <MenuItem value="1">1 Stunde</MenuItem>
+                  <MenuItem value="6">6 Stunden</MenuItem>
+                  <MenuItem value="12">12 Stunden</MenuItem>
+                  <MenuItem value="24">24 Stunden</MenuItem>
+                  <MenuItem value="48">2 Tage</MenuItem>
+                  <MenuItem value="168">1 Woche</MenuItem>
+                  <MenuItem value="720">30 Tage</MenuItem>
+                </Select>
+              </FormControl>
+            )}
           </>}
       </CardContent>
       {beitrag && <CardActions disableSpacing>
         <Tooltip title={props.beitrag?.gefaellt?.map(p => p.name)?.join(', ')}>
-          <IconButton onClick={like}>
+          <span>
+          <IconButton onClick={like} disabled={istEigenerBeitrag}>
           <Badge badgeContent={beitrag.gefaellt_num} color="primary">
               <ThumbUpAltIcon color={beitrag.gefaellt?.some(p => p.name === props.user?.name) ? "primary" : "inherit"} />
           </Badge>
           </IconButton>
+          </span>
         </Tooltip>
         <Tooltip title={props.beitrag?.gefaellt_nicht?.map(p => p.name)?.join(', ')}>
-          <IconButton onClick={dislike}>
+          <span>
+          <IconButton onClick={dislike} disabled={istEigenerBeitrag}>
           <Badge badgeContent={beitrag.gefaellt_nicht_num} color="primary">
               <ThumbDownAltIcon color={beitrag.gefaellt_nicht?.some(p => p.name === props.user?.name) ? "error" : "inherit"} />
           </Badge>
           </IconButton>
+          </span>
         </Tooltip>
         <Tooltip title={props.beitrag?.angesehen?.map(p => p.name)?.join(', ')}>
           <IconButton>
@@ -190,6 +226,7 @@ function BeitragCard(props: BeitragCardProps) {
                     beitragId={beitrag.id}
                     token={props.token}
                     user={props.user}
+                    istEigenerBeitrag={istEigenerBeitrag}
                 />
             </Box>
         </Collapse>

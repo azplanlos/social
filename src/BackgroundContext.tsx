@@ -60,6 +60,58 @@ export const DEFAULT_BACKGROUNDS: BackgroundOption[] = [
   },
 ];
 
+// Helle Hintergründe für den Light-Mode
+export const LIGHT_BACKGROUNDS: BackgroundOption[] = [
+  {
+    id: 'light-sky',
+    name: 'Himmel',
+    value: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 30%, #7dd3fc 60%, #38bdf8 100%)',
+    type: 'gradient',
+  },
+  {
+    id: 'light-lavender',
+    name: 'Lavendel',
+    value: 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 30%, #d8b4fe 60%, #c084fc 100%)',
+    type: 'gradient',
+  },
+  {
+    id: 'light-peach',
+    name: 'Pfirsich',
+    value: 'linear-gradient(135deg, #fff7ed 0%, #fed7aa 30%, #fdba74 60%, #fb923c 100%)',
+    type: 'gradient',
+  },
+  {
+    id: 'light-mint',
+    name: 'Minze',
+    value: 'linear-gradient(135deg, #ecfdf5 0%, #a7f3d0 30%, #6ee7b7 60%, #34d399 100%)',
+    type: 'gradient',
+  },
+  {
+    id: 'light-rose',
+    name: 'Rosé',
+    value: 'linear-gradient(135deg, #fff1f2 0%, #fecdd3 30%, #fda4af 60%, #fb7185 100%)',
+    type: 'gradient',
+  },
+  {
+    id: 'light-cloud',
+    name: 'Wolke',
+    value: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 30%, #e2e8f0 60%, #cbd5e1 100%)',
+    type: 'gradient',
+  },
+  {
+    id: 'light-sunrise',
+    name: 'Sonnenaufgang',
+    value: 'linear-gradient(135deg, #fef9c3 0%, #fde68a 30%, #fbbf24 50%, #f97316 80%, #ef4444 100%)',
+    type: 'gradient',
+  },
+  {
+    id: 'light-aqua',
+    name: 'Aqua',
+    value: 'linear-gradient(135deg, #ecfeff 0%, #a5f3fc 30%, #67e8f9 60%, #22d3ee 100%)',
+    type: 'gradient',
+  },
+];
+
 const STORAGE_KEY = 'app-background';
 const CUSTOM_BG_KEY = 'app-custom-backgrounds';
 

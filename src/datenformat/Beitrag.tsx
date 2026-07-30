@@ -15,6 +15,7 @@ export class Beitrag {
     angesehen_num!: number;
     angesehen!: Person[];
     empfaenger?: Person[];
+    ablaufDatum?: Date;
 }
 
 export enum BeitragTyp {

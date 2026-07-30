@@ -19,7 +19,7 @@ export default function LandingPage({ onLogin }: LandingPageProps) {
             <img
               src="/Social_logo_2.ico"
               alt="Social Logo"
-              style={{ width: 56, height: 56 }}
+              style={{ width: 48, height: 48 }}
             />
             <Typography
               variant="h3"
@@ -29,6 +29,7 @@ export default function LandingPage({ onLogin }: LandingPageProps) {
                 color: '#fff',
                 letterSpacing: 2,
                 textShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                fontSize: { xs: '2rem', sm: '3rem' },
               }}
             >
               SOCIAL
@@ -41,6 +42,8 @@ export default function LandingPage({ onLogin }: LandingPageProps) {
               mb: 4,
               fontWeight: 300,
               lineHeight: 1.6,
+              fontSize: { xs: '1rem', sm: '1.25rem' },
+              px: { xs: 1, sm: 0 },
             }}
           >
             Teile Momente mit deinen Freunden und Familie.
@@ -77,17 +80,17 @@ export default function LandingPage({ onLogin }: LandingPageProps) {
       </Box>
 
       {/* Features Section */}
-      <Container maxWidth="md" sx={{ py: 8 }}>
+      <Container maxWidth="md" sx={{ py: { xs: 4, sm: 8 }, px: { xs: 2, sm: 3 } }}>
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' },
-            gap: 4,
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' },
+            gap: { xs: 2, sm: 4 },
           }}
         >
           {/* Feature Card 1 */}
           <Box sx={{
-            p: 4,
+            p: { xs: 3, sm: 4 },
             textAlign: 'center',
             borderRadius: '16px',
             background: 'rgba(255, 255, 255, 0.6)',
@@ -112,7 +115,7 @@ export default function LandingPage({ onLogin }: LandingPageProps) {
 
           {/* Feature Card 2 */}
           <Box sx={{
-            p: 4,
+            p: { xs: 3, sm: 4 },
             textAlign: 'center',
             borderRadius: '16px',
             background: 'rgba(255, 255, 255, 0.6)',
@@ -137,7 +140,7 @@ export default function LandingPage({ onLogin }: LandingPageProps) {
 
           {/* Feature Card 3 */}
           <Box sx={{
-            p: 4,
+            p: { xs: 3, sm: 4 },
             textAlign: 'center',
             borderRadius: '16px',
             background: 'rgba(255, 255, 255, 0.6)',

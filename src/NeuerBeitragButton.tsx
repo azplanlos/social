@@ -11,12 +11,15 @@ const actions = [
 
 export type NeuerBeitragButtonProps = {
     fotoUpload: () => void;
+    fotoAufnehmen: () => void;
 }
 
 export default function NeuerBeitragButton(props: NeuerBeitragButtonProps) {
     function handleNeuerBeitrag(name: string): void {
         if (name === 'Teile Foto') {
             props.fotoUpload();
+        } else if (name === 'Foto aufnehmen') {
+            props.fotoAufnehmen();
         }
     }
 

@@ -46,6 +46,7 @@ public class NotificationService {
                 notification.setSenderName(senderName);
                 notification.setBeitragTitel(beitragTitel);
                 notification.setBeitragId(beitragId);
+                notification.setType("beitrag");
                 notification.setCreatedAt(Instant.now());
                 notification.setRead(false);
 
@@ -54,6 +55,30 @@ public class NotificationService {
                 logger.warn("Failed to create notification for recipient {}: {}",
                         recipient.getId(), e.getMessage());
             }
+        }
+    }
+
+    /**
+     * Erstellt eine Chat-Notification für den Empfänger einer neuen Nachricht.
+     * Der Absender selbst erhält keine Notification.
+     */
+    @Async
+    public void createChatNotification(String recipientId, String senderName,
+                                       String conversationId, String messageContent) {
+        try {
+            Notification notification = new Notification();
+            notification.setRecipientId(recipientId);
+            notification.setSenderName(senderName);
+            notification.setType("chat");
+            notification.setConversationId(conversationId);
+            notification.setMessagePreview(truncate(messageContent, MAX_BEITRAG_TITEL_LENGTH));
+            notification.setCreatedAt(Instant.now());
+            notification.setRead(false);
+
+            notificationRepository.save(notification);
+        } catch (Exception e) {
+            logger.warn("Failed to create chat notification for recipient {}: {}",
+                    recipientId, e.getMessage());
         }
     }
 

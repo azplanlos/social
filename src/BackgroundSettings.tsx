@@ -21,7 +21,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import GradientIcon from '@mui/icons-material/Gradient';
 import { useNavigate } from 'react-router';
-import { useBackground, BackgroundOption, DEFAULT_BACKGROUNDS } from './BackgroundContext';
+import { useBackground, BackgroundOption, DEFAULT_BACKGROUNDS, LIGHT_BACKGROUNDS } from './BackgroundContext';
+import { useThemeMode } from './ThemeContext';
 
 const glassCardSx = {
   background: 'rgba(255, 255, 255, 0.12)',
@@ -132,6 +133,8 @@ function BackgroundPreview({ bg, selected, onClick, onDelete }: {
 export default function BackgroundSettings() {
   const navigate = useNavigate();
   const { currentBackground, backgrounds, setBackground, addCustomBackground, removeCustomBackground } = useBackground();
+  const { mode } = useThemeMode();
+  const isDark = mode === 'dark';
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<'image' | 'gradient'>('image');
   const [customName, setCustomName] = useState('');
@@ -140,6 +143,7 @@ export default function BackgroundSettings() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const customBackgrounds = backgrounds.filter(bg => bg.custom);
+  const standardBackgrounds = isDark ? DEFAULT_BACKGROUNDS : LIGHT_BACKGROUNDS;
 
   const handleOpenDialog = (mode: 'image' | 'gradient') => {
     setDialogMode(mode);
@@ -201,7 +205,7 @@ export default function BackgroundSettings() {
               Standard
             </Typography>
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1.5, mb: 3 }}>
-              {DEFAULT_BACKGROUNDS.map(bg => (
+              {standardBackgrounds.map(bg => (
                 <BackgroundPreview
                   key={bg.id}
                   bg={bg}

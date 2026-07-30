@@ -16,9 +16,11 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -65,6 +67,10 @@ public class BeitraegeController {
         String currentUser = userInfo.getPerson().getName();
         List<Beitrag> filtered = allBeitraege.getContent().stream()
                 .filter(b -> {
+                    // Abgelaufene Beiträge nicht anzeigen
+                    if (b.getAblaufDatum() != null && b.getAblaufDatum().before(new java.util.Date())) {
+                        return false;
+                    }
                     // Posts without recipients (empty list) are visible to everyone
                     if (b.getEmpfaenger() == null || b.getEmpfaenger().isEmpty()) {
                         return true;
@@ -137,10 +143,15 @@ public class BeitraegeController {
     }
 
     @PostMapping("/beitrag/{id}/like")
-    public void like(@PathVariable("id") String id) {
+    public ResponseEntity<Void> like(@PathVariable("id") String id) {
         logger.info("like #" + id);
         Beitrag beitrag = this.repository.findById(id).orElseThrow();
         String currentUser = userInfo.getPerson().getName();
+
+        // Eigene Beiträge dürfen nicht geliked werden
+        if (beitrag.getAutor() != null && currentUser.equals(beitrag.getAutor().getName())) {
+            return ResponseEntity.status(403).build();
+        }
         boolean alreadyLiked = beitrag.getGefaellt().stream()
                 .anyMatch(p -> Objects.equals(p.getName(), currentUser));
 
@@ -161,13 +172,20 @@ public class BeitraegeController {
             }
         }
         this.repository.save(beitrag);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/beitrag/{id}/dislike")
-    public void dislike(@PathVariable("id") String id) {
+    public ResponseEntity<Void> dislike(@PathVariable("id") String id) {
         logger.info("dislike #" + id);
         Beitrag beitrag = this.repository.findById(id).orElseThrow();
         String currentUser = userInfo.getPerson().getName();
+
+        // Eigene Beiträge dürfen nicht gedisliked werden
+        if (beitrag.getAutor() != null && currentUser.equals(beitrag.getAutor().getName())) {
+            return ResponseEntity.status(403).build();
+        }
+
         boolean alreadyDisliked = beitrag.getGefaelltNicht().stream()
                 .anyMatch(p -> Objects.equals(p.getName(), currentUser));
 
@@ -188,12 +206,18 @@ public class BeitraegeController {
             }
         }
         this.repository.save(beitrag);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/beitrag/{id}/gelesen")
     public void gelesen(@PathVariable("id") String id) {
         logger.info("gelesen #" + id + " von " + userInfo.getPerson().getName());
         Beitrag beitrag = this.repository.findById(id).orElseThrow();
+        // Autor wird nicht als "angesehen" gezählt
+        if (beitrag.getAutor() != null && userInfo.getPerson().getName().equals(beitrag.getAutor().getName())) {
+            logger.info("Autor wird nicht mitgezählt");
+            return;
+        }
         if (beitrag.getAngesehen().stream().noneMatch(p -> Objects.equals(p.getName(), userInfo.getPerson().getName()))) {
             beitrag.setAngesehen_num(beitrag.getAngesehen_num() + 1);
             beitrag.getAngesehen().add(userInfo.getPerson());
@@ -201,5 +225,36 @@ public class BeitraegeController {
         } else {
             logger.warn("Beitrag schon gelesen");
         }
+    }
+
+    @GetMapping("/beitraege/eigene")
+    public List<Beitrag> eigeneBeitraege() {
+        String currentUser = userInfo.getPerson().getName();
+        List<Beitrag> alle = this.repository.findAll(Sort.by(Direction.DESC, "datum"));
+        return alle.stream()
+                .filter(b -> b.getAutor() != null && currentUser.equals(b.getAutor().getName()))
+                .toList();
+    }
+
+    @PutMapping("/beitrag/{id}")
+    public ResponseEntity<Beitrag> updateBeitrag(@PathVariable("id") String id, @RequestBody Beitrag update) {
+        Beitrag beitrag = this.repository.findById(id).orElseThrow();
+        String currentUser = userInfo.getPerson().getName();
+
+        // Nur der Autor darf seinen Beitrag bearbeiten
+        if (beitrag.getAutor() == null || !currentUser.equals(beitrag.getAutor().getName())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        if (update.getTitel() != null) {
+            beitrag.setTitel(update.getTitel());
+        }
+        if (update.getBeschreibung() != null) {
+            beitrag.setBeschreibung(update.getBeschreibung());
+        }
+
+        this.repository.save(beitrag);
+        logger.info("Beitrag bearbeitet: " + id + " von " + currentUser);
+        return ResponseEntity.ok(beitrag);
     }
 }

@@ -196,17 +196,18 @@ export default function ContactListPage({ token }: ContactListPageProps) {
                                         background: 'rgba(255, 255, 255, 0.06)',
                                         border: '1px solid rgba(255, 255, 255, 0.1)',
                                         transition: 'all 0.2s ease',
+                                        flexWrap: { xs: 'wrap', sm: 'nowrap' },
                                         '&:hover': {
                                             background: 'rgba(255, 255, 255, 0.12)',
                                         },
                                     }}
                                     secondaryAction={
-                                        <Box>
-                                            <IconButton onClick={() => openEditDialog(list)} aria-label="Bearbeiten" sx={glassIconButtonSx}>
-                                                <EditIcon />
+                                        <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                            <IconButton onClick={() => openEditDialog(list)} aria-label="Bearbeiten" size="small" sx={glassIconButtonSx}>
+                                                <EditIcon fontSize="small" />
                                             </IconButton>
-                                            <IconButton onClick={() => handleDelete(list.id!)} aria-label="Löschen" sx={{ ...glassIconButtonSx, ml: 1 }}>
-                                                <DeleteIcon />
+                                            <IconButton onClick={() => handleDelete(list.id!)} aria-label="Löschen" size="small" sx={glassIconButtonSx}>
+                                                <DeleteIcon fontSize="small" />
                                             </IconButton>
                                         </Box>
                                     }
