@@ -23,6 +23,9 @@ public class KommentarController {
     @Autowired
     private KommentarRepository kommentarRepository;
 
+    @Autowired
+    private BeitragRepository beitragRepository;
+
     Logger logger = LoggerFactory.getLogger(KommentarController.class);
 
     @GetMapping("/beitrag/{beitragId}/kommentare")
@@ -34,6 +37,13 @@ public class KommentarController {
     public ResponseEntity<?> createKommentar(@PathVariable String beitragId, @RequestBody KommentarRequest request) {
         if (request.getText() == null || request.getText().trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
+        }
+
+        // Eigene Beiträge dürfen nicht kommentiert werden
+        Beitrag beitrag = beitragRepository.findById(beitragId).orElseThrow();
+        String currentUser = userInfo.getPerson().getName();
+        if (beitrag.getAutor() != null && currentUser.equals(beitrag.getAutor().getName())) {
+            return ResponseEntity.status(403).build();
         }
 
         Kommentar kommentar = new Kommentar();

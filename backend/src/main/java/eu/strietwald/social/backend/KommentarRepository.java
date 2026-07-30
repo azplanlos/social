@@ -6,4 +6,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface KommentarRepository extends MongoRepository<Kommentar, String> {
     List<Kommentar> findByBeitragIdOrderByDatumAsc(String beitragId);
+
+    void deleteByBeitragId(String beitragId);
 }

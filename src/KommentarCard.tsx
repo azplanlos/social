@@ -16,11 +16,12 @@ type KommentarCardProps = {
     user?: Person;
     refetch: () => void;
     tiefe: number;
+    istEigenerBeitrag?: boolean;
 };
 
 function KommentarCard(props: KommentarCardProps) {
     const [antwortSichtbar, setAntwortSichtbar] = useState(false);
-    const { kommentar, antworten, alleKommentare, token, user, refetch, tiefe } = props;
+    const { kommentar, antworten, alleKommentare, token, user, refetch, tiefe, istEigenerBeitrag } = props;
 
     const hatGeliked = kommentar.likes?.some((p) => p.name === user?.name) ?? false;
 
@@ -84,23 +85,27 @@ function KommentarCard(props: KommentarCardProps) {
                             />
                         </Badge>
                     </IconButton>
-                    <IconButton
-                        onClick={() => setAntwortSichtbar(!antwortSichtbar)}
-                        size="small"
-                    >
-                        <ReplyIcon fontSize="small" />
-                    </IconButton>
-                    <Typography
-                        variant="caption"
-                        sx={{ cursor: "pointer", color: "text.secondary" }}
-                        onClick={() => setAntwortSichtbar(!antwortSichtbar)}
-                    >
-                        Antworten
-                    </Typography>
+                    {!istEigenerBeitrag && (
+                        <>
+                            <IconButton
+                                onClick={() => setAntwortSichtbar(!antwortSichtbar)}
+                                size="small"
+                            >
+                                <ReplyIcon fontSize="small" />
+                            </IconButton>
+                            <Typography
+                                variant="caption"
+                                sx={{ cursor: "pointer", color: "text.secondary" }}
+                                onClick={() => setAntwortSichtbar(!antwortSichtbar)}
+                            >
+                                Antworten
+                            </Typography>
+                        </>
+                    )}
                 </Box>
 
                 {/* Antwort-Eingabefeld (Toggle) */}
-                {antwortSichtbar && (
+                {antwortSichtbar && !istEigenerBeitrag && (
                     <Box sx={{ marginTop: "8px" }}>
                         <KommentarEingabe
                             beitragId={kommentar.beitragId}
@@ -126,6 +131,7 @@ function KommentarCard(props: KommentarCardProps) {
                     user={user}
                     refetch={refetch}
                     tiefe={tiefe + 1}
+                    istEigenerBeitrag={istEigenerBeitrag}
                 />
             ))}
         </Box>

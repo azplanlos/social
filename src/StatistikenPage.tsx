@@ -49,9 +49,8 @@ const glassCardSx = {
 
 const statBoxSx = {
     ...glassCardSx,
-    p: 2,
+    p: { xs: 1.5, sm: 2 },
     textAlign: 'center' as const,
-    minWidth: 120,
 };
 
 export default function StatistikenPage({ token }: StatistikenPageProps) {
@@ -114,7 +113,7 @@ export default function StatistikenPage({ token }: StatistikenPageProps) {
     return (
         <>
             <CssBaseline />
-            <Container maxWidth="md" sx={{ pt: 2, pb: 4 }}>
+            <Container maxWidth="md" sx={{ pt: 2, pb: 4, px: { xs: 1, sm: 3 } }}>
                 {/* Header */}
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <IconButton onClick={() => navigate(-1)} sx={{ color: '#fff', mr: 1 }}>
@@ -126,26 +125,26 @@ export default function StatistikenPage({ token }: StatistikenPageProps) {
                 </Box>
 
                 {/* Überblick-Karten */}
-                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 4 }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(5, 1fr)' }, gap: 1.5, mb: 4 }}>
                     <Box sx={statBoxSx}>
-                        <Typography variant="h4" sx={{ fontWeight: 700 }}>{stats.totalBeitraege}</Typography>
-                        <Typography variant="body2" sx={{ opacity: 0.8 }}>Beiträge</Typography>
+                        <Typography variant="h5" sx={{ fontWeight: 700 }}>{stats.totalBeitraege}</Typography>
+                        <Typography variant="caption" sx={{ opacity: 0.8 }}>Beiträge</Typography>
                     </Box>
                     <Box sx={statBoxSx}>
-                        <Typography variant="h4" sx={{ fontWeight: 700 }}>{stats.totalUsers}</Typography>
-                        <Typography variant="body2" sx={{ opacity: 0.8 }}>Nutzer</Typography>
+                        <Typography variant="h5" sx={{ fontWeight: 700 }}>{stats.totalUsers}</Typography>
+                        <Typography variant="caption" sx={{ opacity: 0.8 }}>Nutzer</Typography>
                     </Box>
                     <Box sx={statBoxSx}>
-                        <Typography variant="h4" sx={{ fontWeight: 700 }}>{stats.totalLikes}</Typography>
-                        <Typography variant="body2" sx={{ opacity: 0.8 }}>Likes</Typography>
+                        <Typography variant="h5" sx={{ fontWeight: 700 }}>{stats.totalLikes}</Typography>
+                        <Typography variant="caption" sx={{ opacity: 0.8 }}>Likes</Typography>
                     </Box>
                     <Box sx={statBoxSx}>
-                        <Typography variant="h4" sx={{ fontWeight: 700 }}>{stats.totalDislikes}</Typography>
-                        <Typography variant="body2" sx={{ opacity: 0.8 }}>Dislikes</Typography>
+                        <Typography variant="h5" sx={{ fontWeight: 700 }}>{stats.totalDislikes}</Typography>
+                        <Typography variant="caption" sx={{ opacity: 0.8 }}>Dislikes</Typography>
                     </Box>
-                    <Box sx={statBoxSx}>
-                        <Typography variant="h4" sx={{ fontWeight: 700 }}>{stats.totalViews}</Typography>
-                        <Typography variant="body2" sx={{ opacity: 0.8 }}>Aufrufe</Typography>
+                    <Box sx={{ ...statBoxSx, gridColumn: { xs: 'span 2', sm: 'auto' } }}>
+                        <Typography variant="h5" sx={{ fontWeight: 700 }}>{stats.totalViews}</Typography>
+                        <Typography variant="caption" sx={{ opacity: 0.8 }}>Aufrufe</Typography>
                     </Box>
                 </Box>
 
@@ -268,7 +267,7 @@ export default function StatistikenPage({ token }: StatistikenPageProps) {
                                     cx="50%"
                                     cy="50%"
                                     outerRadius={80}
-                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                    label={({ name, percent }: { name?: string; percent?: number }) => `${name ?? ''} ${((percent ?? 0) * 100).toFixed(0)}%`}
                                     labelLine={false}
                                 >
                                     <Cell fill="#82ca9d" />

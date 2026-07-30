@@ -98,13 +98,13 @@ export default function PrimarySearchAppBar(opts: NavbarOpts) {
       open={isMobileMenuOpen}
       onClose={handleMobileMenuClose}
     >
-      <MenuItem>
-        <IconButton size="large" aria-label="show 4 new mails" color="inherit">
+      <MenuItem onClick={() => { handleMobileMenuClose(); navigate('/chat'); }}>
+        <IconButton size="large" aria-label="Chat öffnen" color="inherit">
           <Badge badgeContent={4} color="error">
             <MailIcon />
           </Badge>
         </IconButton>
-        <p>Messages</p>
+        <p>Chat</p>
       </MenuItem>
       <MenuItem onClick={(event) => { handleMobileMenuClose(); handleNotificationOpen(event); }}>
         <IconButton
@@ -181,7 +181,7 @@ export default function PrimarySearchAppBar(opts: NavbarOpts) {
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
           <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
-            <IconButton size="large" aria-label="show 4 new mails" color="inherit">
+            <IconButton size="large" aria-label="Chat öffnen" color="inherit" onClick={() => navigate('/chat')}>
               <Badge badgeContent={4} color="error">
                 <MailIcon />
               </Badge>

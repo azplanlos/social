@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import Popover from '@mui/material/Popover';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlined';
 import { useNotifications } from './useNotifications';
 import { Notification } from './datenformat/Notification';
 
@@ -60,6 +62,7 @@ function NotificationPanel(props: NotificationPanelProps) {
   const { anchorEl, open, onClose, token } = props;
   const { notifications, loading, error, fetchNotifications, markAllAsRead } =
     useNotifications(token);
+  const navigate = useNavigate();
 
   // When panel opens: fetch notifications and mark all as read
   useEffect(() => {
@@ -81,8 +84,9 @@ function NotificationPanel(props: NotificationPanelProps) {
       slotProps={{
         paper: {
           sx: {
-            width: 380,
-            maxHeight: 480,
+            width: { xs: 'calc(100vw - 32px)', sm: 380 },
+            maxWidth: 380,
+            maxHeight: '70vh',
             overflow: 'auto',
             background: 'rgba(30, 30, 60, 0.85)',
             backdropFilter: 'blur(24px) saturate(180%)',
@@ -139,10 +143,17 @@ function NotificationPanel(props: NotificationPanelProps) {
         {notifications.map((notification: Notification) => (
           <Box
             key={notification.id}
+            onClick={() => {
+              if (notification.type === 'chat' && notification.conversationId) {
+                onClose();
+                navigate('/chat');
+              }
+            }}
             sx={{
               p: 1.5,
               mb: 1,
               borderRadius: '10px',
+              cursor: notification.type === 'chat' ? 'pointer' : 'default',
               background: notification.read
                 ? 'rgba(255, 255, 255, 0.05)'
                 : 'rgba(100, 181, 246, 0.15)',
@@ -150,19 +161,29 @@ function NotificationPanel(props: NotificationPanelProps) {
                 ? '1px solid rgba(255, 255, 255, 0.08)'
                 : '1px solid rgba(100, 181, 246, 0.3)',
               transition: 'background 0.2s ease',
+              '&:hover': notification.type === 'chat' ? {
+                background: 'rgba(100, 181, 246, 0.25)',
+              } : {},
             }}
           >
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600, mb: 0.25 }}
-            >
-              {truncateText(notification.senderName, 50)}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.25 }}>
+              {notification.type === 'chat' && (
+                <ChatBubbleOutlineIcon sx={{ fontSize: 14, color: 'rgba(255,255,255,0.6)' }} />
+              )}
+              <Typography
+                variant="subtitle2"
+                sx={{ fontWeight: 600 }}
+              >
+                {truncateText(notification.senderName, 50)}
+              </Typography>
+            </Box>
             <Typography
               variant="body2"
               sx={{ color: 'rgba(255,255,255,0.8)', mb: 0.5 }}
             >
-              {truncateText(notification.beitragTitel, 100)}
+              {notification.type === 'chat'
+                ? truncateText(notification.messagePreview, 100)
+                : truncateText(notification.beitragTitel, 100)}
             </Typography>
             <Typography
               variant="caption"

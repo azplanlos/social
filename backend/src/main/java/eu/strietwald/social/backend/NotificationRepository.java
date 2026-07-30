@@ -15,4 +15,6 @@ public interface NotificationRepository extends MongoRepository<Notification, St
     @Query("{ 'recipientId': ?0, 'read': false }")
     @Update("{ '$set': { 'read': true } }")
     long updateByRecipientIdAndReadFalse(String recipientId);
+
+    void deleteByBeitragId(String beitragId);
 }

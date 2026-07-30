@@ -10,6 +10,7 @@ type KommentarBereichProps = {
     beitragId: string;
     token: string | null;
     user?: Person;
+    istEigenerBeitrag?: boolean;
 };
 
 function KommentarBereich(props: KommentarBereichProps) {
@@ -65,16 +66,19 @@ function KommentarBereich(props: KommentarBereichProps) {
                         user={props.user}
                         refetch={fetchKommentare}
                         tiefe={0}
+                        istEigenerBeitrag={props.istEigenerBeitrag}
                     />
                 ))
             )}
 
             <Box sx={{ marginTop: "12px" }}>
-                <KommentarEingabe
-                    beitragId={props.beitragId}
-                    token={props.token}
-                    onKommentarErstellt={fetchKommentare}
-                />
+                {!props.istEigenerBeitrag && (
+                    <KommentarEingabe
+                        beitragId={props.beitragId}
+                        token={props.token}
+                        onKommentarErstellt={fetchKommentare}
+                    />
+                )}
             </Box>
         </Box>
     );

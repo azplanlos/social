@@ -4,6 +4,12 @@ module.exports = function (app) {
   console.log("register proxy");
 
   app.use(createProxyMiddleware({
+    pathFilter: '/chat',
+    target: 'http://localhost:8080',
+    changeOrigin: true
+  }));
+
+  app.use(createProxyMiddleware({
     pathFilter: '/social',
     target: 'http://localhost:9000',
     changeOrigin: true

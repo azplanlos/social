@@ -54,6 +54,63 @@ public class PushNotificationService {
     }
 
     /**
+     * Sends a chat push notification to all subscriptions of the given person.
+     * Message format: "senderName: messagePreview"
+     */
+    @Async
+    public void sendChatNotification(Person recipient, String senderName, String messagePreview, String conversationId) {
+        if (!enabled) {
+            return;
+        }
+        if (recipient.getPushSubscriptions() == null || recipient.getPushSubscriptions().isEmpty()) {
+            return;
+        }
+        String body = senderName + ": " + (messagePreview != null ? messagePreview : "");
+        String payload = buildChatPayloadJson("Neue Nachricht", body, conversationId);
+
+        for (PushSubscription sub : recipient.getPushSubscriptions()) {
+            try {
+                Notification notification = new Notification(
+                    sub.getEndpoint(),
+                    sub.getP256dh(),
+                    sub.getAuth(),
+                    payload.getBytes(),
+                    86400 // TTL: 24 hours
+                );
+
+                org.apache.http.HttpResponse apacheResponse = pushService.send(notification);
+                int statusCode = apacheResponse.getStatusLine().getStatusCode();
+
+                if (statusCode == 201 || statusCode == 200) {
+                    logger.debug("Chat push sent to {} at endpoint {}", recipient.getName(), sub.getEndpoint());
+                } else if (statusCode == 410 || statusCode == 404) {
+                    logger.info("Push subscription expired for {}, endpoint gone ({}): {}",
+                            recipient.getName(), statusCode, sub.getEndpoint());
+                } else {
+                    String responseBody = apacheResponse.getEntity() != null
+                            ? new String(apacheResponse.getEntity().getContent().readAllBytes())
+                            : "";
+                    logger.warn("Chat push to {} returned status {}: {}", recipient.getName(), statusCode, responseBody);
+                }
+            } catch (Exception e) {
+                logger.error("Failed to send chat push to {} at endpoint {}: {}", recipient.getName(), sub.getEndpoint(), e.getMessage());
+            }
+        }
+    }
+
+    private String buildChatPayloadJson(String title, String body, String conversationId) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"title\":\"").append(escapeJson(title)).append("\"");
+        sb.append(",\"body\":\"").append(escapeJson(body)).append("\"");
+        if (conversationId != null && !conversationId.isEmpty()) {
+            sb.append(",\"conversationId\":\"").append(escapeJson(conversationId)).append("\"");
+        }
+        sb.append(",\"type\":\"chat\"");
+        sb.append("}");
+        return sb.toString();
+    }
+
+    /**
      * Sends a push notification to all subscriptions of the given persons.
      * Message format: "autorName hat einen neuen Beitrag gepostet: titel"
      */
