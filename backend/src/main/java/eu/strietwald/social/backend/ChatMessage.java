@@ -53,4 +53,17 @@ public class ChatMessage {
 
     @Field
     private Long duration; // Dauer in Sekunden (für Sprachnachrichten)
+
+    // Felder für weitergeleitete Beiträge
+    @Field
+    private String forwardedBeitragId;
+
+    @Field
+    private String forwardedBeitragTitel;
+
+    @Field
+    private String forwardedBeitragLink;
+
+    @Field
+    private String forwardedBeitragAutor;
 }

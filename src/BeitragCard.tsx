@@ -6,12 +6,14 @@ import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
 import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
+import ShareIcon from '@mui/icons-material/Share';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import SaveIcon from "@mui/icons-material/Save";
 import { Person } from "./datenformat/Person";
 import axios from "axios";
 import EmpfaengerAuswahl from "./EmpfaengerAuswahl";
 import KommentarBereich from "./KommentarBereich";
+import WeiterleitenDialog from "./WeiterleitenDialog";
 import { config } from "./config";
 import { useNavigate } from "react-router";
 
@@ -39,6 +41,7 @@ export type BeitragCardProps = {
 
 function BeitragCard(props: BeitragCardProps) {
   const [kommentareSichtbar, setKommentareSichtbar] = useState(false);
+  const [weiterleitenOpen, setWeiterleitenOpen] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const navigate = useNavigate();
@@ -277,6 +280,11 @@ function BeitragCard(props: BeitragCardProps) {
         <IconButton onClick={() => setKommentareSichtbar(!kommentareSichtbar)}>
             <ChatBubbleOutlineIcon color={kommentareSichtbar ? "primary" : "inherit"} />
         </IconButton>
+        <Tooltip title="Weiterleiten">
+          <IconButton onClick={() => setWeiterleitenOpen(true)}>
+            <ShareIcon />
+          </IconButton>
+        </Tooltip>
       </CardActions>
     }
     {beitrag && (
@@ -294,6 +302,14 @@ function BeitragCard(props: BeitragCardProps) {
     {props.bearbeiten && <IconButton onClick={() => save()} disabled={props.disabled}>
             <SaveIcon />
         </IconButton>}
+    {beitrag && (
+      <WeiterleitenDialog
+        open={weiterleitenOpen}
+        onClose={() => setWeiterleitenOpen(false)}
+        beitrag={beitrag}
+        token={props.token}
+      />
+    )}
     </Card>
     );
 }

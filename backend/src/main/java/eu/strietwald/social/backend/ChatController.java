@@ -264,6 +264,92 @@ public class ChatController {
     }
 
     /**
+     * Beitrag an einen Benutzer per Chat weiterleiten.
+     */
+    @PostMapping("/forward")
+    public ConversationResponse forwardBeitrag(@RequestBody Map<String, String> body) {
+        String currentUser = userInfo.getPerson().getName();
+        String currentAvatarUrl = userInfo.getPerson().getAvatar_url();
+        String participantName = body.get("participantName");
+        String beitragId = body.get("beitragId");
+        String beitragTitel = body.get("beitragTitel");
+        String beitragLink = body.get("beitragLink");
+        String beitragAutor = body.get("beitragAutor");
+        String messageContent = body.getOrDefault("message", "");
+
+        // Konversation finden oder erstellen
+        Optional<Conversation> existing = conversationRepository
+                .findByBothParticipants(currentUser, participantName);
+
+        Conversation conversation;
+        if (existing.isPresent()) {
+            conversation = existing.get();
+        } else {
+            Person participantPerson = personRepository.findByName(participantName);
+            String participantAvatarUrl = participantPerson != null ? participantPerson.getAvatar_url() : null;
+
+            conversation = new Conversation();
+            conversation.getParticipantNames().add(currentUser);
+            conversation.getParticipantNames().add(participantName);
+
+            Conversation.ConversationParticipant me = new Conversation.ConversationParticipant();
+            me.setName(currentUser);
+            me.setAvatarUrl(currentAvatarUrl);
+            conversation.getParticipants().add(me);
+
+            Conversation.ConversationParticipant other = new Conversation.ConversationParticipant();
+            other.setName(participantName);
+            other.setAvatarUrl(participantAvatarUrl);
+            conversation.getParticipants().add(other);
+
+            conversation.setUpdatedAt(Instant.now());
+            conversation = conversationRepository.save(conversation);
+        }
+
+        // Nachricht mit Beitrag-Informationen erstellen
+        ChatMessage message = new ChatMessage();
+        message.setConversationId(conversation.getId());
+        message.setSenderName(currentUser);
+        message.setSenderAvatarUrl(currentAvatarUrl);
+        message.setContent(messageContent.isEmpty() ? "📤 Beitrag weitergeleitet" : messageContent);
+        message.setTimestamp(Instant.now());
+        message.setRead(false);
+        message.setForwardedBeitragId(beitragId);
+        message.setForwardedBeitragTitel(beitragTitel);
+        message.setForwardedBeitragLink(beitragLink);
+        message.setForwardedBeitragAutor(beitragAutor);
+
+        ChatMessage savedMessage = chatMessageRepository.save(message);
+
+        // Konversation aktualisieren
+        conversation.setLastMessage(savedMessage);
+        conversation.setUpdatedAt(Instant.now());
+        conversationRepository.save(conversation);
+
+        // Benachrichtigung senden
+        String notifyContent = "📤 " + beitragTitel;
+        notifyChatParticipants(conversation, currentUser, notifyContent, conversation.getId());
+
+        // Response erstellen
+        ConversationResponse response = new ConversationResponse();
+        response.setId(conversation.getId());
+        response.setParticipants(conversation.getParticipants().stream()
+                .filter(p -> !p.getName().equals(currentUser))
+                .map(p -> {
+                    ConversationResponse.Participant participant = new ConversationResponse.Participant();
+                    participant.setName(p.getName());
+                    participant.setAvatarUrl(p.getAvatarUrl());
+                    return participant;
+                })
+                .collect(Collectors.toList()));
+        response.setLastMessage(savedMessage);
+        response.setUpdatedAt(conversation.getUpdatedAt().toString());
+        response.setUnreadCount(0);
+
+        return response;
+    }
+
+    /**
      * Sendet In-App- und Push-Benachrichtigungen an alle Teilnehmer
      * einer Konversation (außer dem Absender).
      */
