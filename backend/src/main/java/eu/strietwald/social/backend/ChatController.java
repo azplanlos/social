@@ -1,20 +1,29 @@
 package eu.strietwald.social.backend;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @RestController
 @RequestMapping("/chat")
@@ -39,6 +48,13 @@ public class ChatController {
 
     @Autowired
     private PushNotificationService pushNotificationService;
+
+    @Autowired
+    private S3AsyncClient s3;
+
+    @Autowired
+    @Qualifier("s3Bucket")
+    private String s3Bucket;
 
     /**
      * Alle Konversationen des aktuellen Benutzers laden.
@@ -190,6 +206,61 @@ public class ChatController {
         response.setUnreadCount(0);
 
         return response;
+    }
+
+    /**
+     * Nachricht mit Dateianhang in einer bestehenden Konversation senden.
+     */
+    @PostMapping("/conversations/{conversationId}/messages/file")
+    public ChatMessage sendMessageWithFile(
+            @PathVariable String conversationId,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "content", required = false, defaultValue = "") String content) {
+
+        String currentUser = userInfo.getPerson().getName();
+        String avatarUrl = userInfo.getPerson().getAvatar_url();
+
+        // Datei in S3 hochladen
+        String fileKey = "chat/" + UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+        try {
+            PutObjectRequest request = PutObjectRequest.builder()
+                    .bucket(s3Bucket)
+                    .key(fileKey)
+                    .contentType(file.getContentType())
+                    .build();
+            AsyncRequestBody body = AsyncRequestBody.fromInputStream(file.getInputStream(), file.getSize());
+            s3.putObject(request, body);
+        } catch (IOException e) {
+            logger.error("Fehler beim Hochladen der Datei", e);
+            throw new RuntimeException("Datei-Upload fehlgeschlagen");
+        }
+
+        // Nachricht mit Datei-Informationen speichern
+        ChatMessage message = new ChatMessage();
+        message.setConversationId(conversationId);
+        message.setSenderName(currentUser);
+        message.setSenderAvatarUrl(avatarUrl);
+        message.setContent(content);
+        message.setTimestamp(Instant.now());
+        message.setRead(false);
+        message.setFileUrl(fileKey);
+        message.setFileName(file.getOriginalFilename());
+        message.setFileType(file.getContentType());
+        message.setFileSize(file.getSize());
+
+        ChatMessage saved = chatMessageRepository.save(message);
+
+        // Konversation aktualisieren
+        conversationRepository.findById(conversationId).ifPresent(conv -> {
+            conv.setLastMessage(saved);
+            conv.setUpdatedAt(Instant.now());
+            conversationRepository.save(conv);
+
+            String notifyContent = content.isEmpty() ? "📎 " + file.getOriginalFilename() : content;
+            notifyChatParticipants(conv, currentUser, notifyContent, conversationId);
+        });
+
+        return saved;
     }
 
     /**

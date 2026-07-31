@@ -181,7 +181,7 @@ export default function BackgroundSettings() {
   return (
     <>
       <CssBaseline />
-      <Container maxWidth="sm" sx={{ mt: 4, pb: 4 }}>
+      <Container maxWidth="sm" sx={{ mt: '80px', pb: 4 }}>
         <Button
           startIcon={<ArrowBackIcon />}
           onClick={() => navigate(-1)}

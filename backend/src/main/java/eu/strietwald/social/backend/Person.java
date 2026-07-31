@@ -36,4 +36,11 @@ public class Person {
 
     @Field
     private List<PushSubscription> pushSubscriptions = new ArrayList<>();
+
+    @Field
+    private Integer storyDauerStunden;
+
+    public Integer getStoryDauerStunden() {
+        return storyDauerStunden != null ? storyDauerStunden : 24;
+    }
 }

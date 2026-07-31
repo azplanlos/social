@@ -9,11 +9,14 @@ import {
   CssBaseline,
   Divider,
   IconButton,
+  Slider,
+  Snackbar,
   Typography
 } from '@mui/material';
 import LockResetIcon from '@mui/icons-material/LockReset';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import TimerIcon from '@mui/icons-material/Timer';
 import { Person } from './datenformat/Person';
 import axios from 'axios';
 import { useNavigate } from 'react-router';
@@ -60,6 +63,9 @@ export default function MyProfile({ user, token, onAvatarUpdated }: MyProfilePro
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [storyDauer, setStoryDauer] = useState<number>(user.storyDauerStunden ?? 24);
+  const [savingDauer, setSavingDauer] = useState(false);
+  const [snackbar, setSnackbar] = useState<string | null>(null);
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
@@ -106,10 +112,38 @@ export default function MyProfile({ user, token, onAvatarUpdated }: MyProfilePro
     window.location.href = accountUrl;
   };
 
+  const handleStoryDauerSave = async () => {
+    setSavingDauer(true);
+    try {
+      await axios.post('/account/story-dauer', null, {
+        params: { stunden: storyDauer },
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          Authorization: 'Bearer ' + token
+        },
+        withCredentials: true
+      });
+      setSnackbar('Story-Sichtbarkeit gespeichert');
+    } catch (err) {
+      console.error('Story-Dauer speichern fehlgeschlagen', err);
+      setSnackbar('Fehler beim Speichern');
+    } finally {
+      setSavingDauer(false);
+    }
+  };
+
+  const formatDauer = (stunden: number) => {
+    if (stunden < 24) return `${stunden} Stunde${stunden > 1 ? 'n' : ''}`;
+    const tage = Math.floor(stunden / 24);
+    const rest = stunden % 24;
+    if (rest === 0) return `${tage} Tag${tage > 1 ? 'e' : ''}`;
+    return `${tage} Tag${tage > 1 ? 'e' : ''} ${rest}h`;
+  };
+
   return (
     <>
       <CssBaseline />
-      <Container maxWidth="sm" sx={{ mt: 4 }}>
+      <Container maxWidth="sm" sx={{ mt: '80px' }}>
         <Button
           startIcon={<ArrowBackIcon />}
           onClick={() => navigate('/secure')}
@@ -179,6 +213,55 @@ export default function MyProfile({ user, token, onAvatarUpdated }: MyProfilePro
 
             <Divider sx={{ mb: 3, borderColor: 'rgba(255, 255, 255, 0.2)' }} />
 
+            {/* Story-Sichtbarkeit Section */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
+              <Typography variant="subtitle1" gutterBottom sx={{ color: '#fff' }}>
+                <TimerIcon sx={{ fontSize: 18, mr: 1, verticalAlign: 'text-bottom' }} />
+                Story-Sichtbarkeit
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', mb: 2, textAlign: 'center' }}>
+                Wie lange sollen deine Storys sichtbar sein?
+              </Typography>
+              <Box sx={{ width: '100%', px: 2 }}>
+                <Slider
+                  value={storyDauer}
+                  onChange={(_, val) => setStoryDauer(val as number)}
+                  min={1}
+                  max={168}
+                  step={1}
+                  valueLabelDisplay="auto"
+                  valueLabelFormat={formatDauer}
+                  marks={[
+                    { value: 1, label: '1h' },
+                    { value: 24, label: '24h' },
+                    { value: 48, label: '2T' },
+                    { value: 72, label: '3T' },
+                    { value: 168, label: '7T' },
+                  ]}
+                  sx={{
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    '& .MuiSlider-markLabel': { color: 'rgba(255, 255, 255, 0.6)', fontSize: 12 },
+                    '& .MuiSlider-thumb': { backgroundColor: '#fff' },
+                    '& .MuiSlider-track': { backgroundColor: 'rgba(255, 255, 255, 0.8)' },
+                    '& .MuiSlider-rail': { backgroundColor: 'rgba(255, 255, 255, 0.3)' },
+                  }}
+                />
+              </Box>
+              <Typography variant="body1" sx={{ mt: 1, color: '#fff', fontWeight: 500 }}>
+                {formatDauer(storyDauer)}
+              </Typography>
+              <Button
+                variant="outlined"
+                onClick={handleStoryDauerSave}
+                disabled={savingDauer}
+                sx={{ ...glassButtonSx, mt: 2 }}
+              >
+                {savingDauer ? 'Speichern...' : 'Speichern'}
+              </Button>
+            </Box>
+
+            <Divider sx={{ mb: 3, borderColor: 'rgba(255, 255, 255, 0.2)' }} />
+
             {/* Password Change Section */}
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <Typography variant="subtitle1" gutterBottom sx={{ color: '#fff' }}>
@@ -199,6 +282,12 @@ export default function MyProfile({ user, token, onAvatarUpdated }: MyProfilePro
           </CardContent>
         </Card>
       </Container>
+      <Snackbar
+        open={!!snackbar}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar(null)}
+        message={snackbar}
+      />
     </>
   );
 }

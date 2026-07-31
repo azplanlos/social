@@ -3,7 +3,8 @@ export interface Notification {
   senderName: string;
   beitragTitel: string;
   beitragId: string;
-  type?: 'beitrag' | 'chat';
+  type?: 'beitrag' | 'chat' | 'story';
+  storyId?: string;
   conversationId?: string;
   messagePreview?: string;
   createdAt: string;    // ISO-8601 UTC String vom Backend

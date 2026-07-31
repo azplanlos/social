@@ -155,7 +155,7 @@ export default function ContactListPage({ token }: ContactListPageProps) {
     return (
         <>
             <CssBaseline />
-            <Container maxWidth="sm" sx={{ mt: 4 }}>
+            <Container maxWidth="sm" sx={{ mt: '80px' }}>
                 <Button
                     startIcon={<ArrowBackIcon />}
                     onClick={() => navigate('/secure')}

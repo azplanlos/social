@@ -6,6 +6,11 @@ export interface ChatMessage {
   content: string;
   timestamp: string; // ISO date string
   read: boolean;
+  fileUrl?: string;
+  fileName?: string;
+  fileType?: string;
+  fileSize?: number;
+  duration?: number; // Dauer in Sekunden (für Sprachnachrichten)
 }
 
 export interface Conversation {

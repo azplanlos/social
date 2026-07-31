@@ -52,6 +52,9 @@ public class Beitrag {
     private List<Person> angesehen = new ArrayList<>();
 
     @Field
+    private String typ; // "FOTO" oder "VIDEO"
+
+    @Field
     private Person autor;
 
     @Field
