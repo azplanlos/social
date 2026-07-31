@@ -11,6 +11,11 @@ export interface ChatMessage {
   fileType?: string;
   fileSize?: number;
   duration?: number; // Dauer in Sekunden (für Sprachnachrichten)
+  // Weitergeleiteter Beitrag
+  forwardedBeitragId?: string;
+  forwardedBeitragTitel?: string;
+  forwardedBeitragLink?: string;
+  forwardedBeitragAutor?: string;
 }
 
 export interface Conversation {

@@ -353,7 +353,46 @@ export default function ChatPage({ token }: ChatPageProps) {
                         )}
                       </Box>
                     )}
-                    {msg.content && (
+                    {/* Weitergeleiteter Beitrag */}
+                    {msg.forwardedBeitragId && (
+                      <Box
+                        onClick={() => navigate('/secure?beitrag=' + msg.forwardedBeitragId)}
+                        sx={{
+                          p: 1,
+                          mb: msg.content && msg.content !== '📤 Beitrag weitergeleitet' ? 0.5 : 0,
+                          borderRadius: '6px',
+                          bgcolor: 'rgba(0,0,0,0.04)',
+                          border: '1px solid rgba(0,0,0,0.08)',
+                          cursor: 'pointer',
+                          '&:hover': { bgcolor: 'rgba(0,0,0,0.07)' },
+                        }}
+                      >
+                        <Typography variant="caption" sx={{ color: WA_BLUE, fontWeight: 600, display: 'block', mb: 0.5 }}>
+                          📤 Weitergeleiteter Beitrag
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {msg.forwardedBeitragLink && (
+                            <Box
+                              component="img"
+                              src={config.assetsUrl + '/' + msg.forwardedBeitragLink}
+                              alt={msg.forwardedBeitragTitel || 'Beitrag'}
+                              sx={{ width: 48, height: 48, borderRadius: '4px', objectFit: 'cover', flexShrink: 0 }}
+                            />
+                          )}
+                          <Box sx={{ overflow: 'hidden' }}>
+                            <Typography variant="body2" sx={{ fontWeight: 500, color: WA_TEXT_COLOR, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {msg.forwardedBeitragTitel}
+                            </Typography>
+                            {msg.forwardedBeitragAutor && (
+                              <Typography variant="caption" sx={{ color: WA_GRAY }}>
+                                von {msg.forwardedBeitragAutor}
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+                      </Box>
+                    )}
+                    {msg.content && msg.content !== '📤 Beitrag weitergeleitet' && (
                       <Typography
                         variant="body2"
                         sx={{
