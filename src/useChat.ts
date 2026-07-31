@@ -11,7 +11,7 @@ interface UseChatReturn {
   setActiveConversation: (conv: Conversation | null) => void;
   fetchConversations: () => Promise<void>;
   fetchMessages: (conversationId: string) => Promise<void>;
-  sendMessage: (conversationId: string, content: string, file?: File) => Promise<void>;
+  sendMessage: (conversationId: string, content: string, file?: File, duration?: number) => Promise<void>;
   startConversation: (participantName: string, initialMessage: string) => Promise<void>;
   totalUnreadCount: number;
 }
@@ -64,7 +64,7 @@ export function useChat(token: string | null): UseChatReturn {
     }
   }, [token, authHeaders]);
 
-  const sendMessage = useCallback(async (conversationId: string, content: string, file?: File) => {
+  const sendMessage = useCallback(async (conversationId: string, content: string, file?: File, duration?: number) => {
     if (!token) return;
     try {
       let response: { data: ChatMessage };
@@ -73,6 +73,9 @@ export function useChat(token: string | null): UseChatReturn {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('content', content);
+        if (duration !== undefined) {
+          formData.append('duration', duration.toString());
+        }
         response = await axios.post<ChatMessage>(
           `/chat/conversations/${conversationId}/messages/file`,
           formData,

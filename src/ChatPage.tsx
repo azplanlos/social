@@ -133,7 +133,7 @@ export default function ChatPage({ token }: ChatPageProps) {
 
   const handleVoiceSend = (audioFile: File, durationSeconds: number) => {
     if (!activeConversation) return;
-    sendMessage(activeConversation.id, '', audioFile);
+    sendMessage(activeConversation.id, '', audioFile, durationSeconds);
     setVoiceMode(false);
   };
 
@@ -620,6 +620,7 @@ export default function ChatPage({ token }: ChatPageProps) {
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <Typography
                             variant="body1"
+                            component="span"
                             sx={{
                               color: WA_TEXT_COLOR,
                               fontWeight: conv.unreadCount > 0 ? 700 : 400,
@@ -631,6 +632,7 @@ export default function ChatPage({ token }: ChatPageProps) {
                           </Typography>
                           <Typography
                             variant="caption"
+                            component="span"
                             sx={{
                               color: WA_GRAY,
                               fontSize: '0.75rem',
@@ -640,10 +642,15 @@ export default function ChatPage({ token }: ChatPageProps) {
                           </Typography>
                         </Box>
                       }
+                      slotProps={{
+                        primary: { component: 'div' },
+                        secondary: { component: 'div' },
+                      }}
                       secondary={
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <Typography
                             variant="body2"
+                            component="span"
                             sx={{
                               color: WA_GRAY,
                               overflow: 'hidden',
@@ -654,7 +661,13 @@ export default function ChatPage({ token }: ChatPageProps) {
                               letterSpacing: '0.3px',
                             }}
                           >
-                            {conv.lastMessage?.content || 'Keine Nachrichten'}
+                            {conv.lastMessage?.fileType?.startsWith('image/')
+                              ? '📷 Foto'
+                              : conv.lastMessage?.fileType?.startsWith('audio/')
+                                ? '🎤 Sprachnachricht'
+                                : conv.lastMessage?.fileUrl
+                                  ? '📎 ' + (conv.lastMessage?.fileName || 'Datei')
+                                  : conv.lastMessage?.content || 'Keine Nachrichten'}
                           </Typography>
                           {conv.unreadCount > 0 && (
                             <Box

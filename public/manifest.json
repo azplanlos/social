@@ -3,19 +3,19 @@
   "name": "Social App",
   "icons": [
     {
-      "src": "favicon.ico",
+      "src": "Social_logo_2.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
-      "type": "image/png",
+      "src": "Social_logo_2.ico",
+      "type": "image/x-icon",
       "sizes": "192x192",
       "purpose": "any maskable"
     },
     {
-      "src": "logo512.png",
-      "type": "image/png",
+      "src": "Social_logo_2.ico",
+      "type": "image/x-icon",
       "sizes": "512x512",
       "purpose": "any maskable"
     }
