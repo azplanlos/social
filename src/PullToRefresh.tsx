@@ -57,7 +57,7 @@ const PullToRefresh: React.FC<PullToRefreshProps> = ({ onRefresh, children }) =>
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      style={{ overflow: 'auto', height: '100%' }}
+      style={{ overflow: 'auto', height: '100dvh' }}
     >
       <div
         style={{

@@ -14,6 +14,7 @@ import BarChartIcon from '@mui/icons-material/BarChart';
 import EditIcon from '@mui/icons-material/Edit';
 import ChatIcon from '@mui/icons-material/Chat';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
+import HomeIcon from '@mui/icons-material/Home';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import { Avatar } from '@mui/material';
@@ -44,6 +45,11 @@ export default function TemporaryDrawer(opts: DrawerOpts) {
 
   const toggleDrawer = (newOpen: boolean) => () => {
     opts.setOpen(newOpen);
+  };
+
+  const handleStart = () => {
+    opts.setOpen(false);
+    navigate('/secure');
   };
 
   const handleMyProfile = () => {
@@ -84,6 +90,23 @@ export default function TemporaryDrawer(opts: DrawerOpts) {
   const DrawerList = (
     <Box sx={{ width: 250, height: '100%', py: 2 }} role="presentation" onClick={toggleDrawer(false)}>
       <List>
+        <ListItem disablePadding>
+          <ListItemButton
+            onClick={handleStart}
+            sx={{
+              mx: 1,
+              borderRadius: '12px',
+              transition: 'all 0.2s ease',
+              '&:hover': { background: hoverBg },
+            }}
+          >
+            <ListItemIcon>
+              <HomeIcon sx={{ color: iconColor }} />
+            </ListItemIcon>
+            <ListItemText primary="Start" slotProps={{ primary: { sx: { color: textColor } } }} />
+          </ListItemButton>
+        </ListItem>
+        <Divider sx={{ borderColor: dividerColor, my: 1 }} />
         <ListItem disablePadding>
           <ListItemButton
             onClick={handleMyProfile}
