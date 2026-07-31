@@ -1,17 +1,19 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Card, CardHeader, Avatar, IconButton, CardMedia, CardContent, Typography, CardActions, Badge, TextField, Tooltip, Box, Collapse, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import './BeitragCard.css';
-import { Beitrag } from "./datenformat/Beitrag";
+import { Beitrag, BeitragTyp } from "./datenformat/Beitrag";
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
 import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import SaveIcon from "@mui/icons-material/Save";
 import { Person } from "./datenformat/Person";
 import axios from "axios";
 import EmpfaengerAuswahl from "./EmpfaengerAuswahl";
 import KommentarBereich from "./KommentarBereich";
 import { config } from "./config";
+import { useNavigate } from "react-router";
 
 export type BeitragCardProps = {
   beitrag?: Beitrag;
@@ -19,6 +21,7 @@ export type BeitragCardProps = {
   setBearbeiten?: (b: boolean) => void;
   user?: Person;
   bild?: Blob;
+  istVideo?: boolean;
   titel?: string;
   setTitel?: (t: string) => void;
   beschreibung?: string;
@@ -36,10 +39,29 @@ export type BeitragCardProps = {
 
 function BeitragCard(props: BeitragCardProps) {
   const [kommentareSichtbar, setKommentareSichtbar] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const navigate = useNavigate();
   const beitrag = props.beitrag;
   const user = props.beitrag?.autor || props.user;
-  const bild = (props.beitrag?.link && config.assetsUrl + '/' + props.beitrag?.link) || (props.bild && URL.createObjectURL(props.bild));
+  const mediaUrl = (props.beitrag?.link ? config.assetsUrl + '/' + props.beitrag.link : undefined) || (props.bild ? URL.createObjectURL(props.bild) : undefined);
+  const bild = mediaUrl;
+  // Erkennen ob es ein Video ist (aus Beitrag-Typ oder aus istVideo-Prop oder aus Dateiendung)
+  const isVideo = props.istVideo || props.beitrag?.typ === BeitragTyp.VIDEO ||
+    (props.beitrag?.link && /\.(mp4|webm|mov|avi|mkv)$/i.test(props.beitrag.link));
   const istEigenerBeitrag = beitrag?.autor?.name != null && beitrag.autor.name === props.user?.name;
+
+  function toggleVideo() {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.play();
+        setVideoPlaying(true);
+      } else {
+        videoRef.current.pause();
+        setVideoPlaying(false);
+      }
+    }
+  }
 
   function save(): void {
     props.setDisabled!(true);
@@ -71,7 +93,8 @@ function BeitragCard(props: BeitragCardProps) {
         autor: props.user,
         datum: new Date(),
         empfaenger: props.empfaenger || [],
-        ablaufDatum: ablaufDatum
+        ablaufDatum: ablaufDatum,
+        typ: props.istVideo ? 'VIDEO' : 'FOTO'
       } as Beitrag;
       return axios.post('/beitrag', body, {
         headers: { "X-Requested-With": 'XMLHttpRequest',
@@ -125,8 +148,16 @@ function BeitragCard(props: BeitragCardProps) {
       <CardHeader
         avatar={
             user?.avatar_url ?
-            <Avatar src={config.assetsUrl + '/' + user?.avatar_url}></Avatar> :
-          <Avatar aria-label="recipe">
+            <Avatar
+              src={config.assetsUrl + '/' + user?.avatar_url}
+              onClick={() => user?.name && navigate(`/user/${encodeURIComponent(user.name)}`)}
+              sx={{ cursor: 'pointer' }}
+            /> :
+          <Avatar
+            aria-label="recipe"
+            onClick={() => user?.name && navigate(`/user/${encodeURIComponent(user.name)}`)}
+            sx={{ cursor: 'pointer' }}
+          >
             {user?.name}
           </Avatar>
         }
@@ -137,13 +168,42 @@ function BeitragCard(props: BeitragCardProps) {
         title={beitrag?.titel || 'Neuer Beitrag'}
         subheader={(beitrag?.datum && new Date(beitrag?.datum).toLocaleString()) || new Date().toLocaleString()}
       />
-      <CardMedia
-        component="img"
-        image={bild}
-        alt={beitrag?.titel}
-        onClick={props.onClick}
-        sx={{ borderRadius: '8px', margin: '0 8px', width: 'calc(100% - 16px)' }}
-      />
+      {isVideo ? (
+        <Box sx={{ position: 'relative', margin: '0 8px', width: 'calc(100% - 16px)', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer' }} onClick={toggleVideo}>
+          <video
+            ref={videoRef}
+            src={mediaUrl}
+            style={{ width: '100%', display: 'block', borderRadius: '8px' }}
+            playsInline
+            preload="metadata"
+          />
+          {!videoPlaying && (
+            <Box sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              bgcolor: 'rgba(0,0,0,0.5)',
+              borderRadius: '50%',
+              width: 64,
+              height: 64,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <PlayArrowIcon sx={{ color: 'white', fontSize: 40 }} />
+            </Box>
+          )}
+        </Box>
+      ) : (
+        <CardMedia
+          component="img"
+          image={bild}
+          alt={beitrag?.titel}
+          onClick={props.onClick}
+          sx={{ borderRadius: '8px', margin: '0 8px', width: 'calc(100% - 16px)' }}
+        />
+      )}
       <CardContent>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           {beitrag?.beschreibung}

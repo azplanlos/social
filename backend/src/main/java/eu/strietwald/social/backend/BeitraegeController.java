@@ -128,15 +128,35 @@ public class BeitraegeController {
     public String saveFoto(@RequestParam("file") MultipartFile file,
       RedirectAttributes redirectAttributes) {
         logger.info("Uploading file " + file.getOriginalFilename());
-        String filename = UUID.randomUUID().toString() + ".jpg";
-        PutObjectRequest request = PutObjectRequest.builder().bucket(s3Bucket).key(filename).build();
+        
+        // Dateiendung aus dem Original-Dateinamen oder Content-Type ableiten
+        String extension = ".jpg";
+        String originalFilename = file.getOriginalFilename();
+        String contentType = file.getContentType();
+        
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        } else if (contentType != null && contentType.startsWith("video/")) {
+            extension = ".mp4";
+        }
+        
+        String filename = UUID.randomUUID().toString() + extension;
+        
+        PutObjectRequest.Builder requestBuilder = PutObjectRequest.builder()
+                .bucket(s3Bucket)
+                .key(filename);
+        
+        if (contentType != null) {
+            requestBuilder.contentType(contentType);
+        }
+        
+        PutObjectRequest request = requestBuilder.build();
         AsyncRequestBody body;
         try {
             body = AsyncRequestBody.fromInputStream(file.getInputStream(), file.getSize());
             s3.putObject(request, body);
             return filename;
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
        return null;
@@ -225,6 +245,44 @@ public class BeitraegeController {
         } else {
             logger.warn("Beitrag schon gelesen");
         }
+    }
+
+    @GetMapping("/beitraege/user/{name}")
+    public List<Beitrag> beitraegeVonUser(@PathVariable("name") String name) {
+        String currentUser = userInfo.getPerson().getName();
+        List<Beitrag> beitraege = this.repository.findByAutorNameOrderByDatumDesc(name);
+        return beitraege.stream()
+                .filter(b -> {
+                    // Abgelaufene Beiträge nicht anzeigen
+                    if (b.getAblaufDatum() != null && b.getAblaufDatum().before(new java.util.Date())) {
+                        return false;
+                    }
+                    // Öffentliche Beiträge (keine Empfänger) sind sichtbar
+                    if (b.getEmpfaenger() == null || b.getEmpfaenger().isEmpty()) {
+                        return true;
+                    }
+                    // Eigene Beiträge sind immer sichtbar
+                    if (b.getAutor() != null && currentUser.equals(b.getAutor().getName())) {
+                        return true;
+                    }
+                    // Prüfen ob der aktuelle Nutzer in der Empfängerliste ist
+                    return b.getEmpfaenger().stream()
+                            .anyMatch(p -> currentUser.equals(p.getName()));
+                })
+                .toList();
+    }
+
+    @GetMapping("/user/{name}")
+    public ResponseEntity<Person> getUserByName(@PathVariable("name") String name) {
+        Person person = personRepository.findByName(name);
+        if (person == null) {
+            return ResponseEntity.notFound().build();
+        }
+        // Sensible Daten nicht zurückgeben
+        Person publicPerson = new Person();
+        publicPerson.setName(person.getName());
+        publicPerson.setAvatar_url(person.getAvatar_url());
+        return ResponseEntity.ok(publicPerson);
     }
 
     @GetMapping("/beitraege/eigene")

@@ -32,9 +32,13 @@ public class Notification {
     @Field
     private String beitragId;
 
-    /** "beitrag" (default/legacy) or "chat" */
+    /** "beitrag" (default/legacy), "chat", or "story" */
     @Field
     private String type;
+
+    /** Nur für type="story": die zugehörige Story-ID */
+    @Field
+    private String storyId;
 
     /** Nur für type="chat": die zugehörige Konversations-ID */
     @Field

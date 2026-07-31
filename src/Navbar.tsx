@@ -155,7 +155,10 @@ export default function PrimarySearchAppBar(opts: NavbarOpts) {
           >
             <MenuIcon />
           </IconButton>
-          <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center' }}>
+          <Box
+            sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', cursor: 'pointer' }}
+            onClick={() => navigate('/secure')}
+          >
             <img
               src="/Social_logo_2.ico"
               alt="Social Logo"

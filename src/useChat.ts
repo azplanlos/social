@@ -11,7 +11,7 @@ interface UseChatReturn {
   setActiveConversation: (conv: Conversation | null) => void;
   fetchConversations: () => Promise<void>;
   fetchMessages: (conversationId: string) => Promise<void>;
-  sendMessage: (conversationId: string, content: string) => Promise<void>;
+  sendMessage: (conversationId: string, content: string, file?: File) => Promise<void>;
   startConversation: (participantName: string, initialMessage: string) => Promise<void>;
   totalUnreadCount: number;
 }
@@ -64,14 +64,33 @@ export function useChat(token: string | null): UseChatReturn {
     }
   }, [token, authHeaders]);
 
-  const sendMessage = useCallback(async (conversationId: string, content: string) => {
+  const sendMessage = useCallback(async (conversationId: string, content: string, file?: File) => {
     if (!token) return;
     try {
-      const response = await axios.post<ChatMessage>(
-        `/chat/conversations/${conversationId}/messages`,
-        { content },
-        { headers: authHeaders(), withCredentials: true }
-      );
+      let response: { data: ChatMessage };
+      if (file) {
+        // Multipart-Upload mit Dateianhang
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('content', content);
+        response = await axios.post<ChatMessage>(
+          `/chat/conversations/${conversationId}/messages/file`,
+          formData,
+          {
+            headers: {
+              ...authHeaders(),
+              'Content-Type': 'multipart/form-data',
+            },
+            withCredentials: true,
+          }
+        );
+      } else {
+        response = await axios.post<ChatMessage>(
+          `/chat/conversations/${conversationId}/messages`,
+          { content },
+          { headers: authHeaders(), withCredentials: true }
+        );
+      }
       setMessages(prev => [...prev, response.data]);
       // Konversationsliste aktualisieren
       fetchConversations();

@@ -67,6 +67,18 @@ public class AccountController {
         }
     }
 
+    @PostMapping("/account/story-dauer")
+    public Person updateStoryDauer(@RequestParam("stunden") Integer stunden) {
+        if (stunden == null || stunden < 1 || stunden > 168) {
+            throw new IllegalArgumentException("Story-Dauer muss zwischen 1 und 168 Stunden liegen");
+        }
+        Person person = userInfo.getPerson();
+        person.setStoryDauerStunden(stunden);
+        personRepository.save(person);
+        logger.info("Story-Dauer aktualisiert für User: " + person.getName() + " auf " + stunden + "h");
+        return person;
+    }
+
     private void updatePersonInBeitraege(Person person) {
         String name = person.getName();
 

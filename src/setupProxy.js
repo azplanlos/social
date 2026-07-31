@@ -3,8 +3,11 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 module.exports = function (app) {
   console.log("register proxy");
 
+  // API-Endpunkte an das Spring Boot Backend weiterleiten
   app.use(createProxyMiddleware({
-    pathFilter: '/chat',
+    pathFilter: ['/beitrag', '/beitraege', '/foto', '/users', '/user', '/account',
+                 '/conversations', '/contactlists', '/notifications', '/push',
+                 '/stories', '/story', '/statistiken', '/chat'],
     target: 'http://localhost:8080',
     changeOrigin: true
   }));

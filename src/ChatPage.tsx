@@ -26,45 +26,38 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SendIcon from '@mui/icons-material/Send';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlined';
 import AddCommentIcon from '@mui/icons-material/AddComment';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import CloseIcon from '@mui/icons-material/Close';
+import MicIcon from '@mui/icons-material/Mic';
 import { useNavigate } from 'react-router';
 import { useChat } from './useChat';
 import { Conversation } from './datenformat/ChatMessage';
 import { Person } from './datenformat/Person';
 import { config } from './config';
 import axios from 'axios';
+import VoiceRecorder from './VoiceRecorder';
+import AudioPlayer from './AudioPlayer';
 
 export type ChatPageProps = {
   token: string | null;
 };
 
-// Liquid Glass Styles (gleich wie ContactListPage)
-const glassCardSx = {
-  background: 'rgba(255, 255, 255, 0.12)',
-  backdropFilter: 'blur(20px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-  border: '1px solid rgba(255, 255, 255, 0.2)',
-  borderRadius: '20px',
-  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
-  color: '#fff',
-};
-
-const glassButtonSx = {
-  background: 'rgba(255, 255, 255, 0.15)',
-  backdropFilter: 'blur(12px) saturate(160%)',
-  WebkitBackdropFilter: 'blur(12px) saturate(160%)',
-  border: '1px solid rgba(255, 255, 255, 0.25)',
-  borderRadius: '50px',
-  color: '#fff',
-  textTransform: 'none' as const,
-  fontWeight: 500,
-  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-  transition: 'all 0.2s ease',
-  '&:hover': {
-    background: 'rgba(255, 255, 255, 0.25)',
-    boxShadow: '0 6px 24px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
-    transform: 'translateY(-1px)',
-  },
-};
+// WhatsApp-lite Farben (aus src/constants/colors.ts)
+const WA_BLUE = '#3498db';
+const WA_LIGHT_GRAY = '#dbc3c7';
+const WA_EXTRA_LIGHT_GREY = '#ededed';
+const WA_ALMOST_WHITE = '#f4f8f7';
+const WA_GRAY = '#7f8c8d';
+const WA_TEXT_COLOR = '#1c1e21';
+const WA_PRIMARY = '#32d4ae';
+const WA_RED = '#e74c3c';
+const WA_BEIGE = '#FEF5C3';
+const WA_BUBBLE_OWN = '#E7FED6';
+const WA_BUBBLE_OTHER = '#ffffff';
+const WA_BUBBLE_BORDER = '#E2DACC';
+const WA_BG_CHAT = '#f0ebe3';
 
 export default function ChatPage({ token }: ChatPageProps) {
   const navigate = useNavigate();
@@ -85,6 +78,9 @@ export default function ChatPage({ token }: ChatPageProps) {
   const [allUsers, setAllUsers] = useState<Person[]>([]);
   const [selectedUser, setSelectedUser] = useState<Person | null>(null);
   const [initialMessage, setInitialMessage] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [voiceMode, setVoiceMode] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   // Benutzer laden für neue Konversation
@@ -108,9 +104,24 @@ export default function ChatPage({ token }: ChatPageProps) {
   };
 
   const handleSend = () => {
-    if (!messageInput.trim() || !activeConversation) return;
-    sendMessage(activeConversation.id, messageInput.trim());
+    if ((!messageInput.trim() && !selectedFile) || !activeConversation) return;
+    sendMessage(activeConversation.id, messageInput.trim(), selectedFile || undefined);
     setMessageInput('');
+    setSelectedFile(null);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+    // Input zurücksetzen damit gleiche Datei erneut gewählt werden kann
+    e.target.value = '';
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -118,6 +129,12 @@ export default function ChatPage({ token }: ChatPageProps) {
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const handleVoiceSend = (audioFile: File, durationSeconds: number) => {
+    if (!activeConversation) return;
+    sendMessage(activeConversation.id, '', audioFile);
+    setVoiceMode(false);
   };
 
   const handleStartConversation = () => {
@@ -151,18 +168,42 @@ export default function ChatPage({ token }: ChatPageProps) {
     return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
   };
 
-  // Nachrichtenansicht
+  // Nachrichtenansicht (WhatsApp-lite Style)
   if (activeConversation) {
     return (
       <>
         <CssBaseline />
-        <Container maxWidth="sm" sx={{ mt: 4, height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
-          {/* Header */}
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            bgcolor: WA_BG_CHAT,
+          }}
+        >
+          {/* Header - schlicht wie whatsApp-lite */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              px: 1.5,
+              py: 1,
+              gap: 1.5,
+              flexShrink: 0,
+              bgcolor: '#fff',
+              borderBottom: `1px solid ${WA_EXTRA_LIGHT_GREY}`,
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            }}
+          >
             <IconButton
               onClick={() => setActiveConversation(null)}
-              sx={{ color: '#fff' }}
+              sx={{ color: WA_BLUE }}
               aria-label="Zurück zur Übersicht"
+              size="small"
             >
               <ArrowBackIcon />
             </IconButton>
@@ -172,29 +213,51 @@ export default function ChatPage({ token }: ChatPageProps) {
             >
               {getConversationName(activeConversation).charAt(0).toUpperCase()}
             </Avatar>
-            <Typography variant="h6" sx={{ color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
-              {getConversationName(activeConversation)}
-            </Typography>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="subtitle1" sx={{ color: WA_TEXT_COLOR, fontWeight: 600, lineHeight: 1.2 }}>
+                {getConversationName(activeConversation)}
+              </Typography>
+            </Box>
           </Box>
 
-          {/* Nachrichten */}
+          {/* Chat-Bereich mit hellem Hintergrund-Pattern (wie BG.png im Repo) */}
           <Box
             sx={{
-              ...glassCardSx,
               flex: 1,
               overflow: 'auto',
-              p: 2,
-              mb: 2,
+              px: 1.5,
+              py: 2,
               display: 'flex',
               flexDirection: 'column',
-              gap: 1,
+              gap: 0.5,
+              minHeight: 0,
+              bgcolor: WA_BG_CHAT,
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23d4cfc6' fill-opacity='0.2'%3E%3Ccircle cx='20' cy='20' r='1.5'/%3E%3Ccircle cx='60' cy='40' r='1'/%3E%3Ccircle cx='80' cy='80' r='1.5'/%3E%3Ccircle cx='40' cy='70' r='1'/%3E%3Ccircle cx='10' cy='60' r='0.8'/%3E%3Ccircle cx='90' cy='20' r='1'/%3E%3Ccircle cx='50' cy='10' r='0.8'/%3E%3C/g%3E%3C/svg%3E")`,
             }}
           >
             {loading && messages.length === 0 && (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                <CircularProgress sx={{ color: 'rgba(255,255,255,0.7)' }} />
+                <CircularProgress sx={{ color: WA_PRIMARY }} />
               </Box>
             )}
+
+            {/* System-Nachricht wenn Chat neu */}
+            {!loading && messages.length === 0 && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                <Box sx={{
+                  bgcolor: WA_BEIGE,
+                  borderRadius: '6px',
+                  px: 2,
+                  py: 0.8,
+                  border: `1px solid ${WA_BUBBLE_BORDER}`,
+                }}>
+                  <Typography variant="body2" sx={{ color: '#65644A', textAlign: 'center' }}>
+                    Dies ist ein neuer Chat. Sag Hallo!
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+
             {messages.map((msg) => {
               const isOwn = msg.senderName !== getConversationName(activeConversation);
               return (
@@ -203,32 +266,122 @@ export default function ChatPage({ token }: ChatPageProps) {
                   sx={{
                     display: 'flex',
                     justifyContent: isOwn ? 'flex-end' : 'flex-start',
-                    mb: 0.5,
+                    mb: '10px',
                   }}
                 >
                   <Box
                     sx={{
-                      maxWidth: '75%',
-                      p: 1.5,
-                      borderRadius: isOwn ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                      background: isOwn
-                        ? 'rgba(100, 150, 255, 0.3)'
-                        : 'rgba(255, 255, 255, 0.1)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
-                      backdropFilter: 'blur(8px)',
+                      maxWidth: '90%',
+                      p: '5px',
+                      px: 1,
+                      borderRadius: '6px',
+                      bgcolor: isOwn ? WA_BUBBLE_OWN : WA_BUBBLE_OTHER,
+                      border: `1px solid ${WA_BUBBLE_BORDER}`,
                     }}
                   >
                     {!isOwn && (
-                      <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', display: 'block', mb: 0.5 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: WA_TEXT_COLOR,
+                          fontWeight: 500,
+                          display: 'block',
+                          mb: '6px',
+                        }}
+                      >
                         {msg.senderName}
                       </Typography>
                     )}
-                    <Typography variant="body2" sx={{ color: '#fff', wordBreak: 'break-word' }}>
-                      {msg.content}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)', display: 'block', mt: 0.5, textAlign: 'right' }}>
-                      {formatTime(msg.timestamp)}
-                    </Typography>
+                    {/* Dateianhang anzeigen */}
+                    {msg.fileUrl && (
+                      <Box sx={{ mb: msg.content ? 0.5 : 0 }}>
+                        {msg.fileType?.startsWith('audio/') ? (
+                          <AudioPlayer
+                            src={config.assetsUrl + '/' + msg.fileUrl}
+                            duration={msg.duration}
+                            accentColor={WA_PRIMARY}
+                          />
+                        ) : msg.fileType?.startsWith('image/') ? (
+                          <Box
+                            component="a"
+                            href={config.assetsUrl + '/' + msg.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{ display: 'block' }}
+                          >
+                            <Box
+                              component="img"
+                              src={config.assetsUrl + '/' + msg.fileUrl}
+                              alt={msg.fileName || 'Bild'}
+                              sx={{
+                                maxWidth: '100%',
+                                maxHeight: 200,
+                                borderRadius: '4px',
+                                display: 'block',
+                              }}
+                            />
+                          </Box>
+                        ) : (
+                          <Box
+                            component="a"
+                            href={config.assetsUrl + '/' + msg.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                              p: 1,
+                              bgcolor: 'rgba(0,0,0,0.04)',
+                              borderRadius: '4px',
+                              textDecoration: 'none',
+                              color: WA_TEXT_COLOR,
+                            }}
+                          >
+                            <InsertDriveFileIcon sx={{ color: WA_BLUE, fontSize: 32 }} />
+                            <Box sx={{ overflow: 'hidden' }}>
+                              <Typography variant="body2" sx={{ fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {msg.fileName || 'Datei'}
+                              </Typography>
+                              {msg.fileSize && (
+                                <Typography variant="caption" sx={{ color: WA_GRAY }}>
+                                  {formatFileSize(msg.fileSize)}
+                                </Typography>
+                              )}
+                            </Box>
+                          </Box>
+                        )}
+                      </Box>
+                    )}
+                    {msg.content && (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: WA_TEXT_COLOR,
+                          wordBreak: 'break-word',
+                          letterSpacing: '0.3px',
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {msg.content}
+                      </Typography>
+                    )}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-end',
+                        gap: '1px',
+                        mt: '5px',
+                      }}
+                    >
+                      <Typography variant="caption" sx={{ color: WA_GRAY, fontSize: '12px', letterSpacing: '0.3px' }}>
+                        {formatTime(msg.timestamp)}
+                      </Typography>
+                      {isOwn && (
+                        <DoneAllIcon sx={{ fontSize: 13, color: msg.read ? WA_BLUE : WA_GRAY, ml: 0.3 }} />
+                      )}
+                    </Box>
                   </Box>
                 </Box>
               );
@@ -236,139 +389,262 @@ export default function ChatPage({ token }: ChatPageProps) {
             <div ref={messagesEndRef} />
           </Box>
 
-          {/* Eingabefeld */}
-          <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-            <TextField
-              fullWidth
-              placeholder="Nachricht schreiben..."
-              value={messageInput}
-              onChange={(e) => setMessageInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              multiline
-              maxRows={4}
+          {/* Datei-Vorschau */}
+          {selectedFile && (
+            <Box
               sx={{
-                '& .MuiOutlinedInput-root': {
-                  ...glassCardSx,
-                  borderRadius: '16px',
-                  '& fieldset': { border: 'none' },
-                },
-                '& .MuiInputBase-input': { color: '#fff' },
-                '& .MuiInputBase-input::placeholder': { color: 'rgba(255,255,255,0.5)' },
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                px: '14px',
+                py: '6px',
+                bgcolor: '#f9f9f9',
+                borderTop: `1px solid ${WA_EXTRA_LIGHT_GREY}`,
               }}
-            />
-            <IconButton
-              onClick={handleSend}
-              disabled={!messageInput.trim()}
-              sx={{
-                ...glassButtonSx,
-                width: 48,
-                height: 48,
-                alignSelf: 'flex-end',
-              }}
-              aria-label="Nachricht senden"
             >
-              <SendIcon />
-            </IconButton>
+              <InsertDriveFileIcon sx={{ color: WA_BLUE, fontSize: 20 }} />
+              <Typography variant="body2" sx={{ flex: 1, color: WA_TEXT_COLOR, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {selectedFile.name} ({formatFileSize(selectedFile.size)})
+              </Typography>
+              <IconButton size="small" onClick={() => setSelectedFile(null)} sx={{ color: WA_GRAY }}>
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          )}
+
+          {/* Eingabefeld - WhatsApp-lite Style: runder Input + blaue Icons */}
+          <Box
+            sx={{
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0,
+              px: '10px',
+              py: '8px',
+              height: '50px',
+              bgcolor: '#fff',
+              borderTop: selectedFile ? 'none' : `1px solid ${WA_EXTRA_LIGHT_GREY}`,
+            }}
+          >
+            {voiceMode ? (
+              <VoiceRecorder
+                onSend={handleVoiceSend}
+                onCancel={() => setVoiceMode(false)}
+                accentColor={WA_PRIMARY}
+              />
+            ) : (
+              <>
+                {/* Versteckter File-Input */}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileSelect}
+                  style={{ display: 'none' }}
+                />
+                <IconButton
+                  sx={{ color: WA_BLUE, width: 30, height: 50 }}
+                  onClick={() => fileInputRef.current?.click()}
+                  aria-label="Datei anhängen"
+                >
+                  <AttachFileIcon />
+                </IconButton>
+                <TextField
+                  fullWidth
+                  placeholder="Nachricht..."
+                  value={messageInput}
+                  onChange={(e) => setMessageInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  size="small"
+                  sx={{
+                    mx: '10px',
+                    '& .MuiOutlinedInput-root': {
+                      bgcolor: '#fff',
+                      borderRadius: '50px',
+                      height: '40px',
+                      '& fieldset': { borderColor: WA_LIGHT_GRAY, borderWidth: 1 },
+                      '&:hover fieldset': { borderColor: WA_LIGHT_GRAY },
+                      '&.Mui-focused fieldset': { borderColor: WA_BLUE },
+                    },
+                    '& .MuiInputBase-input': { color: WA_TEXT_COLOR, fontSize: '16px', px: 1.5 },
+                    '& .MuiInputBase-input::placeholder': { color: WA_GRAY },
+                  }}
+                />
+                {(messageInput.trim().length > 0 || selectedFile) ? (
+                  <IconButton
+                    onClick={handleSend}
+                    sx={{ color: WA_BLUE, width: 30, height: 50 }}
+                    aria-label="Nachricht senden"
+                  >
+                    <SendIcon />
+                  </IconButton>
+                ) : (
+                  <IconButton
+                    sx={{ color: WA_PRIMARY, width: 30, height: 50 }}
+                    onClick={() => setVoiceMode(true)}
+                    aria-label="Sprachnachricht aufnehmen"
+                  >
+                    <MicIcon />
+                  </IconButton>
+                )}
+              </>
+            )}
           </Box>
-        </Container>
+        </Box>
       </>
     );
   }
 
-  // Konversationsliste
+  // Konversationsliste (WhatsApp-lite Style)
   return (
     <>
       <CssBaseline />
-      <Container maxWidth="sm" sx={{ mt: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
-          <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={() => navigate('/secure')}
-            sx={{ ...glassButtonSx, px: 3, py: 1 }}
-          >
-            Zurück
-          </Button>
-          <Box sx={{ flex: 1 }} />
-          <Button
-            startIcon={<AddCommentIcon />}
-            onClick={() => setNewChatOpen(true)}
-            sx={{ ...glassButtonSx, px: 3, py: 1 }}
-          >
-            Neuer Chat
-          </Button>
+      <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', bgcolor: '#fff' }}>
+        {/* Header */}
+        <Box
+          sx={{
+            bgcolor: '#fff',
+            px: 2,
+            py: 1.5,
+            borderBottom: `1px solid ${WA_EXTRA_LIGHT_GREY}`,
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <IconButton onClick={() => navigate('/secure')} sx={{ color: WA_BLUE }} size="small">
+                <ArrowBackIcon />
+              </IconButton>
+              <Typography variant="h6" sx={{ color: WA_TEXT_COLOR, fontWeight: 700, fontSize: '1.2rem' }}>
+                Chats
+              </Typography>
+            </Box>
+            <IconButton onClick={() => setNewChatOpen(true)} sx={{ color: WA_BLUE }} size="small">
+              <AddCommentIcon />
+            </IconButton>
+          </Box>
         </Box>
 
-        <Box sx={{ ...glassCardSx, p: 2 }}>
-          <Typography variant="h5" sx={{ color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.3)', mb: 2 }}>
-            Chat
-          </Typography>
-          <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.2)', mb: 1 }} />
-
+        {/* Konversationsliste */}
+        <Box sx={{ flex: 1, overflow: 'auto', bgcolor: '#fff' }}>
           {loading && conversations.length === 0 && (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <CircularProgress sx={{ color: 'rgba(255,255,255,0.7)' }} />
+              <CircularProgress sx={{ color: WA_PRIMARY }} />
             </Box>
           )}
 
           {!loading && conversations.length === 0 && (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <ChatBubbleOutlineIcon sx={{ fontSize: 48, color: 'rgba(255,255,255,0.3)', mb: 1 }} />
-              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
-                Noch keine Chats vorhanden. Starte einen neuen Chat!
+            <Box sx={{ textAlign: 'center', py: 6 }}>
+              <ChatBubbleOutlineIcon sx={{ fontSize: 48, color: WA_EXTRA_LIGHT_GREY, mb: 2 }} />
+              <Typography variant="body1" sx={{ color: WA_GRAY }}>
+                Noch keine Chats vorhanden
+              </Typography>
+              <Typography variant="body2" sx={{ color: WA_LIGHT_GRAY, mt: 0.5 }}>
+                Starte einen neuen Chat!
               </Typography>
             </Box>
           )}
 
           {error && (
-            <Typography variant="body2" sx={{ color: '#ff6b6b', mb: 1 }}>
+            <Typography variant="body2" sx={{ color: WA_RED, px: 2, py: 1 }}>
               {error}
             </Typography>
           )}
 
           <List disablePadding>
-            {conversations.map((conv) => (
-              <ListItem key={conv.id} disablePadding sx={{ mb: 0.5 }}>
-                <ListItemButton
-                  onClick={() => handleSelectConversation(conv)}
-                  sx={{
-                    borderRadius: '12px',
-                    transition: 'all 0.2s ease',
-                    '&:hover': { background: 'rgba(255, 255, 255, 0.1)' },
-                  }}
-                >
-                  <ListItemAvatar>
-                    <Badge
-                      badgeContent={conv.unreadCount}
-                      color="error"
-                      invisible={conv.unreadCount === 0}
-                    >
-                      <Avatar src={getConversationAvatar(conv)}>
-                        {getConversationName(conv).charAt(0).toUpperCase()}
-                      </Avatar>
-                    </Badge>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={getConversationName(conv)}
-                    secondary={conv.lastMessage?.content || 'Keine Nachrichten'}
-                    slotProps={{
-                      primary: { sx: { color: '#fff', fontWeight: conv.unreadCount > 0 ? 700 : 400 } },
-                      secondary: {
-                        sx: {
-                          color: 'rgba(255,255,255,0.6)',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        },
-                      },
+            {conversations.map((conv, index) => (
+              <React.Fragment key={conv.id}>
+                <ListItem disablePadding>
+                  <ListItemButton
+                    onClick={() => handleSelectConversation(conv)}
+                    sx={{
+                      py: 1.2,
+                      px: 2,
+                      '&:hover': { bgcolor: WA_ALMOST_WHITE },
                     }}
-                  />
-                  {conv.lastMessage && (
-                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)', ml: 1, whiteSpace: 'nowrap' }}>
-                      {formatTime(conv.lastMessage.timestamp)}
-                    </Typography>
-                  )}
-                </ListItemButton>
-              </ListItem>
+                  >
+                    <ListItemAvatar>
+                      <Badge
+                        badgeContent={conv.unreadCount}
+                        color="error"
+                        invisible={conv.unreadCount === 0}
+                      >
+                        <Avatar
+                          src={getConversationAvatar(conv)}
+                          sx={{ width: 50, height: 50 }}
+                        >
+                          {getConversationName(conv).charAt(0).toUpperCase()}
+                        </Avatar>
+                      </Badge>
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              color: WA_TEXT_COLOR,
+                              fontWeight: conv.unreadCount > 0 ? 700 : 400,
+                              fontSize: '1rem',
+                              letterSpacing: '0.3px',
+                            }}
+                          >
+                            {getConversationName(conv)}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: WA_GRAY,
+                              fontSize: '0.75rem',
+                            }}
+                          >
+                            {conv.lastMessage ? formatTime(conv.lastMessage.timestamp) : ''}
+                          </Typography>
+                        </Box>
+                      }
+                      secondary={
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: WA_GRAY,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              flex: 1,
+                              mr: 1,
+                              letterSpacing: '0.3px',
+                            }}
+                          >
+                            {conv.lastMessage?.content || 'Keine Nachrichten'}
+                          </Typography>
+                          {conv.unreadCount > 0 && (
+                            <Box
+                              sx={{
+                                bgcolor: WA_PRIMARY,
+                                color: '#fff',
+                                borderRadius: '50%',
+                                minWidth: 20,
+                                height: 20,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '0.7rem',
+                                fontWeight: 700,
+                              }}
+                            >
+                              {conv.unreadCount}
+                            </Box>
+                          )}
+                        </Box>
+                      }
+                      sx={{ ml: 1 }}
+                    />
+                  </ListItemButton>
+                </ListItem>
+                {index < conversations.length - 1 && (
+                  <Divider variant="inset" sx={{ ml: 10, borderColor: WA_EXTRA_LIGHT_GREY }} />
+                )}
+              </React.Fragment>
             ))}
           </List>
         </Box>
@@ -382,19 +658,15 @@ export default function ChatPage({ token }: ChatPageProps) {
           slotProps={{
             paper: {
               sx: {
-                background: 'rgba(30, 30, 60, 0.85)',
-                backdropFilter: 'blur(24px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                borderRadius: '20px',
-                boxShadow: '0 16px 64px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
-                color: '#fff',
+                borderRadius: '12px',
               },
             },
           }}
         >
-          <DialogTitle sx={{ color: '#fff' }}>Neuen Chat starten</DialogTitle>
-          <DialogContent>
+          <DialogTitle sx={{ color: WA_TEXT_COLOR }}>
+            Neuen Chat starten
+          </DialogTitle>
+          <DialogContent sx={{ mt: 1 }}>
             <Autocomplete
               options={allUsers}
               getOptionLabel={(option) => option.name}
@@ -405,7 +677,7 @@ export default function ChatPage({ token }: ChatPageProps) {
                   <ListItemAvatar>
                     <Avatar
                       src={option.avatar_url ? config.assetsUrl + '/' + option.avatar_url : undefined}
-                      sx={{ width: 32, height: 32 }}
+                      sx={{ width: 36, height: 36 }}
                     >
                       {option.name?.charAt(0).toUpperCase()}
                     </Avatar>
@@ -420,11 +692,8 @@ export default function ChatPage({ token }: ChatPageProps) {
                   label="Empfänger"
                   margin="dense"
                   sx={{
-                    '& .MuiInput-underline:before': { borderBottomColor: 'rgba(255,255,255,0.3)' },
-                    '& .MuiInput-underline:hover:before': { borderBottomColor: 'rgba(255,255,255,0.5)' },
-                    '& .MuiInput-underline:after': { borderBottomColor: '#fff' },
-                    '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.6)' },
-                    '& .MuiInputBase-input': { color: '#fff' },
+                    '& .MuiInput-underline:after': { borderBottomColor: WA_BLUE },
+                    '& .MuiInputLabel-root.Mui-focused': { color: WA_BLUE },
                   }}
                 />
               )}
@@ -441,28 +710,32 @@ export default function ChatPage({ token }: ChatPageProps) {
               maxRows={4}
               sx={{
                 mt: 2,
-                '& .MuiInput-underline:before': { borderBottomColor: 'rgba(255,255,255,0.3)' },
-                '& .MuiInput-underline:hover:before': { borderBottomColor: 'rgba(255,255,255,0.5)' },
-                '& .MuiInput-underline:after': { borderBottomColor: '#fff' },
-                '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.6)' },
-                '& .MuiInputBase-input': { color: '#fff' },
+                '& .MuiInput-underline:after': { borderBottomColor: WA_BLUE },
+                '& .MuiInputLabel-root.Mui-focused': { color: WA_BLUE },
               }}
             />
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2 }}>
-            <Button onClick={() => setNewChatOpen(false)} sx={{ ...glassButtonSx, px: 3 }}>
+            <Button onClick={() => setNewChatOpen(false)} sx={{ color: WA_GRAY }}>
               Abbrechen
             </Button>
             <Button
               onClick={handleStartConversation}
               disabled={!selectedUser || !initialMessage.trim()}
-              sx={{ ...glassButtonSx, px: 3 }}
+              variant="contained"
+              sx={{
+                bgcolor: WA_PRIMARY,
+                '&:hover': { bgcolor: '#2ab895' },
+                borderRadius: '20px',
+                px: 3,
+                textTransform: 'none',
+              }}
             >
               Senden
             </Button>
           </DialogActions>
         </Dialog>
-      </Container>
+      </Box>
     </>
   );
 }

@@ -24,7 +24,7 @@ function FotoUpload(props: FotoUploadProps) {
     }, [props.waehlen]);
     
     return (
-        <input id="file" type="file" onChange={handleFileChange} accept="image/*" ref={inputRef} style={{ display: 'none' }} />
+        <input id="file" type="file" onChange={handleFileChange} accept="image/*,video/*" ref={inputRef} style={{ display: 'none' }} />
     )
 }
 

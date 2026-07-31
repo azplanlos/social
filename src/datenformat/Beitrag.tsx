@@ -3,7 +3,7 @@ import { Person } from "./Person";
 export class Beitrag {
     id!: string;
     link!: string;
-    typ!: BeitragTyp;
+    typ?: BeitragTyp;
     titel!: string;
     datum!: Date;
     beschreibung?: string;
@@ -19,5 +19,6 @@ export class Beitrag {
 }
 
 export enum BeitragTyp {
-    FOTO, VIDEO
+    FOTO = "FOTO",
+    VIDEO = "VIDEO"
 }

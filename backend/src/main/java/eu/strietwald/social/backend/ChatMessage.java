@@ -38,4 +38,19 @@ public class ChatMessage {
 
     @Field
     private boolean read;
+
+    @Field
+    private String fileUrl;
+
+    @Field
+    private String fileName;
+
+    @Field
+    private String fileType;
+
+    @Field
+    private Long fileSize;
+
+    @Field
+    private Long duration; // Dauer in Sekunden (für Sprachnachrichten)
 }

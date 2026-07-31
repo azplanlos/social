@@ -82,6 +82,42 @@ public class NotificationService {
         }
     }
 
+    /**
+     * Erstellt Notifications für alle Empfänger einer neuen Story.
+     * Der Autor selbst erhält keine Notification.
+     */
+    @Async
+    public void createStoryNotification(Story story, List<Person> recipients) {
+        Person autor = story.getAutor();
+        String autorId = autor != null ? autor.getId() : null;
+        String senderName = autor != null ? autor.getName() : "";
+        String storyTitel = truncate(story.getTitel(), MAX_BEITRAG_TITEL_LENGTH);
+        String storyId = story.getId();
+
+        for (Person recipient : recipients) {
+            // Autor aus Empfänger-Liste ausschließen
+            if (recipient.getId() != null && recipient.getId().equals(autorId)) {
+                continue;
+            }
+
+            try {
+                Notification notification = new Notification();
+                notification.setRecipientId(recipient.getId());
+                notification.setSenderName(senderName);
+                notification.setBeitragTitel(storyTitel);
+                notification.setStoryId(storyId);
+                notification.setType("story");
+                notification.setCreatedAt(Instant.now());
+                notification.setRead(false);
+
+                notificationRepository.save(notification);
+            } catch (Exception e) {
+                logger.warn("Failed to create story notification for recipient {}: {}",
+                        recipient.getId(), e.getMessage());
+            }
+        }
+    }
+
     private String truncate(String text, int maxLength) {
         if (text == null) {
             return "";

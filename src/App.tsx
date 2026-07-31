@@ -16,7 +16,7 @@ import { Person } from './datenformat/Person';
 import Compress from 'compress.js';
 import { useSessionStorage } from '@uidotdev/usehooks';
 import ImageViewer from 'simple-image-viewer-react19';
-import { BrowserRouter, Route, Routes } from 'react-router';
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router';
 import { Notifications } from '@mui/icons-material';
 import Token from './Token';
 import MyProfile from './MyProfile';
@@ -31,6 +31,8 @@ import StatistikenPage from './StatistikenPage';
 import BearbeitenPage from './BearbeitenPage';
 import ChatPage from './ChatPage';
 import StoriesPage from './StoriesPage';
+import StoryKreise from './StoryKreise';
+import UserProfile from './UserProfile';
 
 // Set axios base URL from config (empty string for local dev = relative URLs via proxy)
 axios.defaults.baseURL = config.apiUrl;
@@ -74,6 +76,25 @@ interface PageResponse {
 function ThemedAppShell({ children }: { children: React.ReactNode }) {
   const { theme } = useThemeMode();
   return <ThemeProvider theme={theme}>{children}</ThemeProvider>;
+}
+
+/** Wrapper-Komponente die Navbar/Drawer nur anzeigt, wenn NICHT im Chat */
+function NavbarWrapper({ drawerOpen, open, setOpen, user, token }: {
+  drawerOpen: (open: boolean) => void;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  user: Person;
+  token: string | null;
+}) {
+  const location = useLocation();
+  if (location.pathname === '/chat') return null;
+  return (
+    <>
+      <CssBaseline />
+      <Navbar drawerOpen={drawerOpen} account={user} token={token} />
+      <DrawerMenu open={open} setOpen={setOpen} account={user} />
+    </>
+  );
 }
 
 
@@ -197,6 +218,7 @@ function App() {
   const [disabled, setDisabled] = React.useState(false);
   const [empfaenger, setEmpfaenger] = React.useState<Person[]>([]);
   const [sichtbarkeitsDauer, setSichtbarkeitsDauer] = React.useState<string>('unbegrenzt');
+  const [istVideo, setIstVideo] = React.useState(false);
   const [visibleState, setVisibleState] = React.useState<string[]>([]);
   const refs = useRef<Element[]>([]);
   const [currentImage, setCurrentImage] = useState(0);
@@ -250,15 +272,20 @@ function App() {
   }, [beitraege, user]);
 
   function loadBild(file: File) {
-    const compressor = new Compress();
-
-    compressor.compress([file], {
-      quality: 0.8,
-      maxWidth: 500,
-      maxHeight: 500,
-    }).then(file => {
-      setBild(Compress.convertBase64ToFile(file[0].data, file[0].ext));
-    });
+    if (file.type.startsWith('video/')) {
+      setIstVideo(true);
+      setBild(file);
+    } else {
+      setIstVideo(false);
+      const compressor = new Compress();
+      compressor.compress([file], {
+        quality: 0.8,
+        maxWidth: 500,
+        maxHeight: 500,
+      }).then(file => {
+        setBild(Compress.convertBase64ToFile(file[0].data, file[0].ext));
+      });
+    }
   }
 
   function finishBearbeiten(b: boolean): void {
@@ -277,11 +304,16 @@ function App() {
     <ThemedAppShell>
     <BackgroundProvider>
     <BrowserRouter>
+        {/* Navbar und DrawerMenu global auf allen authentifizierten Seiten anzeigen (außer Chat) */}
+        {user && <NavbarWrapper drawerOpen={setOpen} open={open} setOpen={setOpen} user={user} token={token} />}
         <Routes>
           <Route path="/" element={<LandingPage onLogin={() => triggerLogin('/secure')} />} />
           <Route path={config.oidc.redirectPath} element={<Token setToken={setToken} />} />
           <Route path="/profile" element={
             user ? <MyProfile user={user} token={token} onAvatarUpdated={refetchUser} /> : <></>
+          } />
+          <Route path="/user/:name" element={
+            <UserProfile token={token} />
           } />
           <Route path="/contactlists" element={
             <ContactListPage token={token} />
@@ -315,14 +347,12 @@ function App() {
                 />
               }
               {!isViewerOpen && user && <>
-              <CssBaseline />
-              <Navbar drawerOpen={setOpen} account={user} token={token} />
-              <DrawerMenu open={open} setOpen={setOpen} account={user} />
               <NeuerBeitragButton fotoUpload={() => setUpload(true)} fotoAufnehmen={() => setCameraOpen(true)} />
               <FotoUpload waehlen={upload} onSelected={(file: File) => {setBearbeiten(true); setUpload(false); loadBild(file)}} />
               <CameraCapture open={cameraOpen} onCapture={(file: File) => {setCameraOpen(false); setBearbeiten(true); loadBild(file);}} onClose={() => setCameraOpen(false)} />
               <PullToRefresh onRefresh={refetch}>
               <Container maxWidth="sm" sx={{marginTop: "64px", px: { xs: 1, sm: 3 }, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                <StoryKreise token={token} user={user} />
                 {pushState === 'prompt' && (
                   <Alert
                     severity="info"
@@ -336,7 +366,7 @@ function App() {
                     Push-Benachrichtigungen aktivieren, um über neue Beiträge informiert zu werden.
                   </Alert>
                 )}
-                {bearbeiten && <BeitragCard bearbeiten user={user} bild={bild} titel={titel} beschreibung={beschreibung} setTitel={setTitel}
+                {bearbeiten && <BeitragCard bearbeiten user={user} bild={bild} istVideo={istVideo} titel={titel} beschreibung={beschreibung} setTitel={setTitel}
                 setBeschreibung={setBeschreibung} setBearbeiten={finishBearbeiten} disabled={disabled} setDisabled={setDisabled} empfaenger={empfaenger} setEmpfaenger={setEmpfaenger} sichtbarkeitsDauer={sichtbarkeitsDauer} setSichtbarkeitsDauer={setSichtbarkeitsDauer} refetch={refetch} token={token}></BeitragCard>}
                 {cards}
                 {hasMore && <div ref={loaderRef} style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>

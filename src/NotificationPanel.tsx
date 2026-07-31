@@ -5,6 +5,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlined';
+import AutoStoriesOutlinedIcon from '@mui/icons-material/AutoStoriesOutlined';
 import { useNotifications } from './useNotifications';
 import { Notification } from './datenformat/Notification';
 
@@ -147,13 +148,16 @@ function NotificationPanel(props: NotificationPanelProps) {
               if (notification.type === 'chat' && notification.conversationId) {
                 onClose();
                 navigate('/chat');
+              } else if (notification.type === 'story') {
+                onClose();
+                navigate('/');
               }
             }}
             sx={{
               p: 1.5,
               mb: 1,
               borderRadius: '10px',
-              cursor: notification.type === 'chat' ? 'pointer' : 'default',
+              cursor: (notification.type === 'chat' || notification.type === 'story') ? 'pointer' : 'default',
               background: notification.read
                 ? 'rgba(255, 255, 255, 0.05)'
                 : 'rgba(100, 181, 246, 0.15)',
@@ -161,7 +165,7 @@ function NotificationPanel(props: NotificationPanelProps) {
                 ? '1px solid rgba(255, 255, 255, 0.08)'
                 : '1px solid rgba(100, 181, 246, 0.3)',
               transition: 'background 0.2s ease',
-              '&:hover': notification.type === 'chat' ? {
+              '&:hover': (notification.type === 'chat' || notification.type === 'story') ? {
                 background: 'rgba(100, 181, 246, 0.25)',
               } : {},
             }}
@@ -169,6 +173,9 @@ function NotificationPanel(props: NotificationPanelProps) {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.25 }}>
               {notification.type === 'chat' && (
                 <ChatBubbleOutlineIcon sx={{ fontSize: 14, color: 'rgba(255,255,255,0.6)' }} />
+              )}
+              {notification.type === 'story' && (
+                <AutoStoriesOutlinedIcon sx={{ fontSize: 14, color: 'rgba(255,255,255,0.6)' }} />
               )}
               <Typography
                 variant="subtitle2"
@@ -183,7 +190,9 @@ function NotificationPanel(props: NotificationPanelProps) {
             >
               {notification.type === 'chat'
                 ? truncateText(notification.messagePreview, 100)
-                : truncateText(notification.beitragTitel, 100)}
+                : notification.type === 'story'
+                  ? `hat eine neue Story geteilt${notification.beitragTitel ? ': ' + truncateText(notification.beitragTitel, 80) : ''}`
+                  : truncateText(notification.beitragTitel, 100)}
             </Typography>
             <Typography
               variant="caption"

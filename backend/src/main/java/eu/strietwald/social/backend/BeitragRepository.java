@@ -11,4 +11,6 @@ public interface BeitragRepository extends MongoRepository<Beitrag, String> {
     Page<Beitrag> findAllByOrderByDatumDesc(Pageable pageable);
 
     List<Beitrag> findByAblaufDatumNotNullAndAblaufDatumBefore(Date datum);
+
+    List<Beitrag> findByAutorNameOrderByDatumDesc(String name);
 }

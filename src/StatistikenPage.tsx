@@ -88,7 +88,7 @@ export default function StatistikenPage({ token }: StatistikenPageProps) {
 
     if (error || !stats) {
         return (
-            <Container maxWidth="sm" sx={{ mt: 4 }}>
+            <Container maxWidth="sm" sx={{ mt: '80px' }}>
                 <Typography color="error">{error || 'Unbekannter Fehler'}</Typography>
             </Container>
         );
@@ -113,7 +113,7 @@ export default function StatistikenPage({ token }: StatistikenPageProps) {
     return (
         <>
             <CssBaseline />
-            <Container maxWidth="md" sx={{ pt: 2, pb: 4, px: { xs: 1, sm: 3 } }}>
+            <Container maxWidth="md" sx={{ pt: '80px', pb: 4, px: { xs: 1, sm: 3 } }}>
                 {/* Header */}
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <IconButton onClick={() => navigate(-1)} sx={{ color: '#fff', mr: 1 }}>

@@ -30,6 +30,12 @@ public class StoryController {
     @Autowired
     private PersonRepository personRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private ContactListRepository contactListRepository;
+
     /**
      * Alle aktiven Stories abrufen (nur die, die der aktuelle User sehen darf).
      */
@@ -63,16 +69,34 @@ public class StoryController {
     public ResponseEntity<Story> createStory(@RequestBody Story story) {
         logger.info("Neue Story von: " + userInfo.getPerson().getName());
 
-        story.setAutor(userInfo.getPerson());
+        Person autor = userInfo.getPerson();
+        story.setAutor(autor);
         story.setDatum(new Date());
 
-        // Story läuft nach 24 Stunden ab
+        // Story-Dauer aus den Einstellungen des Autors lesen (Default: 24h)
+        int dauerStunden = (autor.getStoryDauerStunden() != null) ? autor.getStoryDauerStunden() : 24;
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Date());
-        cal.add(Calendar.HOUR_OF_DAY, 24);
+        cal.add(Calendar.HOUR_OF_DAY, dauerStunden);
         story.setExpiresAt(cal.getTime());
 
         Story saved = storyRepository.save(story);
+
+        // Benachrichtigungen an Kontakte/Zuschauer senden
+        List<Person> recipients;
+        if (story.getZuschauer() != null && !story.getZuschauer().isEmpty()) {
+            // Wenn Zuschauer explizit gesetzt sind, nur diese benachrichtigen
+            recipients = story.getZuschauer();
+        } else {
+            // Sonst alle Kontakte des Autors benachrichtigen
+            List<ContactList> contactLists = contactListRepository.findByOwnerName(autor.getName());
+            recipients = contactLists.stream()
+                    .flatMap(cl -> cl.getMembers().stream())
+                    .distinct()
+                    .toList();
+        }
+        notificationService.createStoryNotification(saved, recipients);
+
         return ResponseEntity.ok(saved);
     }
 

@@ -1,19 +1,17 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { Box, Container, Typography } from '@mui/material';
 import { People, PhotoCamera, Favorite } from '@mui/icons-material';
-import LiquidGlass from 'liquid-glass-react';
 
 interface LandingPageProps {
   onLogin: () => void;
 }
 
 export default function LandingPage({ onLogin }: LandingPageProps) {
-  const heroRef = useRef<HTMLDivElement>(null);
 
   return (
     <Box className="landing-page">
       {/* Hero Section */}
-      <Box className="landing-hero" ref={heroRef}>
+      <Box className="landing-hero">
         <Container maxWidth="sm" sx={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2 }}>
             <img
@@ -50,31 +48,41 @@ export default function LandingPage({ onLogin }: LandingPageProps) {
             Deine private Community wartet auf dich.
           </Typography>
 
-          {/* Liquid Glass Login Button */}
+          {/* Login Button */}
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <LiquidGlass
-              displacementScale={50}
-              blurAmount={0.08}
-              saturation={160}
-              aberrationIntensity={2}
-              elasticity={0.25}
-              cornerRadius={50}
-              padding="14px 48px"
+            <Box
+              component="button"
               onClick={onLogin}
-              mouseContainer={heroRef}
-              overLight={false}
-              style={{ position: 'relative', top: 'auto', left: 'auto', transform: 'none' }}
-            >
-              <span style={{ 
-                color: '#fff', 
-                fontWeight: 600, 
+              sx={{
+                px: 6,
+                py: 1.8,
                 fontSize: '1.1rem',
-                textShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                fontWeight: 600,
                 letterSpacing: '0.5px',
-              }}>
-                Anmelden
-              </span>
-            </LiquidGlass>
+                color: '#fff',
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.08) 100%)',
+                backdropFilter: 'blur(12px) saturate(140%)',
+                WebkitBackdropFilter: 'blur(12px) saturate(140%)',
+                border: '1.5px solid rgba(255,255,255,0.4)',
+                borderRadius: '50px',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.4)',
+                cursor: 'pointer',
+                transition: 'all 0.25s ease',
+                textShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.15) 100%)',
+                  boxShadow: '0 12px 40px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.5)',
+                  transform: 'translateY(-2px)',
+                  border: '1.5px solid rgba(255,255,255,0.6)',
+                },
+                '&:active': {
+                  transform: 'translateY(0)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.3)',
+                },
+              }}
+            >
+              Anmelden
+            </Box>
           </Box>
         </Container>
       </Box>
