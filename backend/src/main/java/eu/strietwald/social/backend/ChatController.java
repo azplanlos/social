@@ -215,7 +215,8 @@ public class ChatController {
     public ChatMessage sendMessageWithFile(
             @PathVariable String conversationId,
             @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "content", required = false, defaultValue = "") String content) {
+            @RequestParam(value = "content", required = false, defaultValue = "") String content,
+            @RequestParam(value = "duration", required = false) Long duration) {
 
         String currentUser = userInfo.getPerson().getName();
         String avatarUrl = userInfo.getPerson().getAvatar_url();
@@ -229,7 +230,7 @@ public class ChatController {
                     .contentType(file.getContentType())
                     .build();
             AsyncRequestBody body = AsyncRequestBody.fromInputStream(file.getInputStream(), file.getSize());
-            s3.putObject(request, body);
+            s3.putObject(request, body).join();
         } catch (IOException e) {
             logger.error("Fehler beim Hochladen der Datei", e);
             throw new RuntimeException("Datei-Upload fehlgeschlagen");
@@ -247,6 +248,9 @@ public class ChatController {
         message.setFileName(file.getOriginalFilename());
         message.setFileType(file.getContentType());
         message.setFileSize(file.getSize());
+        if (duration != null) {
+            message.setDuration(duration);
+        }
 
         ChatMessage saved = chatMessageRepository.save(message);
 

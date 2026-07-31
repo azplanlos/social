@@ -190,6 +190,28 @@ export default function StoriesPage({ token, user }: StoriesPageProps) {
         elapsedRef.current = 0;
     }
 
+    // Deep-Link: ?story=<id> automatisch öffnen
+    const deepLinkHandledRef = useRef(false);
+    useEffect(() => {
+        if (deepLinkHandledRef.current) return;
+        if (stories.length === 0 || groupedStories.length === 0) return;
+        const params = new URLSearchParams(window.location.search);
+        const storyParam = params.get('story');
+        if (!storyParam) return;
+
+        // Finde die Gruppe und den Snap-Index für die angegebene Story
+        for (let gi = 0; gi < groupedStories.length; gi++) {
+            const si = groupedStories[gi].stories.findIndex(s => s.id === storyParam);
+            if (si >= 0) {
+                openViewer(gi, si);
+                deepLinkHandledRef.current = true;
+                break;
+            }
+        }
+        // URL aufräumen
+        window.history.replaceState({}, '', window.location.pathname);
+    }, [stories, groupedStories]);
+
     // Timer starten/neustarten wenn sich Snap ändert
     useEffect(() => {
         if (viewerOpen && !paused) {

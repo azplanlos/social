@@ -148,16 +148,20 @@ function NotificationPanel(props: NotificationPanelProps) {
               if (notification.type === 'chat' && notification.conversationId) {
                 onClose();
                 navigate('/chat');
-              } else if (notification.type === 'story') {
+              } else if (notification.type === 'story' && notification.storyId) {
                 onClose();
-                navigate('/');
+                navigate('/stories?story=' + notification.storyId);
+              } else if (notification.beitragId) {
+                // Deeplink zu Beitrag (default/beitrag type)
+                onClose();
+                navigate('/secure?beitrag=' + notification.beitragId);
               }
             }}
             sx={{
               p: 1.5,
               mb: 1,
               borderRadius: '10px',
-              cursor: (notification.type === 'chat' || notification.type === 'story') ? 'pointer' : 'default',
+              cursor: 'pointer',
               background: notification.read
                 ? 'rgba(255, 255, 255, 0.05)'
                 : 'rgba(100, 181, 246, 0.15)',
@@ -165,9 +169,9 @@ function NotificationPanel(props: NotificationPanelProps) {
                 ? '1px solid rgba(255, 255, 255, 0.08)'
                 : '1px solid rgba(100, 181, 246, 0.3)',
               transition: 'background 0.2s ease',
-              '&:hover': (notification.type === 'chat' || notification.type === 'story') ? {
+              '&:hover': {
                 background: 'rgba(100, 181, 246, 0.25)',
-              } : {},
+              },
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.25 }}>
